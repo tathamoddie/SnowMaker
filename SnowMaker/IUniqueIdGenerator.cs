@@ -2,6 +2,6 @@ namespace SnowMaker
 {
     public interface IUniqueIdGenerator
     {
-        long NextId();
+        long NextId(string scopeName);
     }
 }

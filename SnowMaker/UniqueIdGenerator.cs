@@ -8,7 +8,7 @@ namespace SnowMaker
         readonly int rangeSize;
         readonly int maxRetries;
         readonly IOptimisticDataStore optimisticDataStore;
-        readonly string scopeName;
+        readonly string defaultScopeName;
 
         readonly ScopeState state = new ScopeState();
 
@@ -21,11 +21,14 @@ namespace SnowMaker
             this.rangeSize = rangeSize;
             this.maxRetries = maxRetries;
             this.optimisticDataStore = optimisticDataStore;
-            this.scopeName = scopeName;
+            defaultScopeName = scopeName;
         }
 
-        public long NextId()
+        public long NextId(string scopeName)
         {
+            if (scopeName != defaultScopeName)
+                throw new NotSupportedException("We don't actually support receiving scope names here yet.");
+
             lock (state.IdGenerationLock)
             {
                 if (state.LastId == state.UpperLimit)
@@ -43,7 +46,7 @@ namespace SnowMaker
             // maxRetries + 1 because the first run isn't a 're'try.
             while (retryCount < maxRetries + 1)
             {
-                var data = optimisticDataStore.GetData(scopeName);
+                var data = optimisticDataStore.GetData(defaultScopeName);
 
                 if (!Int64.TryParse(data, out state.LastId))
                 {
@@ -54,7 +57,7 @@ namespace SnowMaker
 
                 state.UpperLimit = state.LastId + rangeSize;
 
-                if (optimisticDataStore.TryOptimisticWrite(scopeName, state.UpperLimit.ToString()))
+                if (optimisticDataStore.TryOptimisticWrite(defaultScopeName, state.UpperLimit.ToString()))
                 {
                     // update succeeded
                     return;

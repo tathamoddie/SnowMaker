@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
-using System.Net;
 
 namespace SnowMaker
 {
@@ -27,14 +27,6 @@ namespace SnowMaker
             return blobReference.DownloadText();
         }
 
-        CloudBlob GetBlobReference(string blockName)
-        {
-            return blobReferences.GetValue(
-                blockName,
-                blobReferencesLock,
-                () => blobContainer.GetBlobReference(blockName));
-        }
-
         public bool TryOptimisticWrite(string scopeName, string data)
         {
             var blobReference = GetBlobReference(scopeName);
@@ -53,6 +45,14 @@ namespace SnowMaker
                 throw;
             }
             return true;
+        }
+
+        CloudBlob GetBlobReference(string blockName)
+        {
+            return blobReferences.GetValue(
+                blockName,
+                blobReferencesLock,
+                () => blobContainer.GetBlobReference(blockName));
         }
     }
 }
