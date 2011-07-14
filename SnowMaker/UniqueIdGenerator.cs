@@ -56,25 +56,21 @@ namespace SnowMaker
                 var data = optimisticDataStore.GetData(scopeName);
 
                 if (!long.TryParse(data, out state.LastId))
-                {
                     throw new UniqueIdGenerationException(string.Format(
-                       "Data '{0}' in storage was corrupt and could not be parsed as an Int64"
-                       , data));
-                }
+                       "The id seed returned from storage for scope '{0}' was corrupt, and could not be parsed as a long. The data returned was: {1}",
+                       scopeName,
+                       data));
 
                 state.UpperLimit = state.LastId + batchSize;
 
                 if (optimisticDataStore.TryOptimisticWrite(scopeName, state.UpperLimit.ToString()))
-                {
-                    // update succeeded
                     return;
-                }
 
                 writesAttempted++;
             }
 
             throw new UniqueIdGenerationException(string.Format(
-                "Failed to update the OptimisticSyncStore after {0} attempts",
+                "Failed to update the data store after {0} attempts. This likely represents too much contention against the store. Increase the batch size to a value more appropriate to your generation load.",
                 writesAttempted));
         }
     }

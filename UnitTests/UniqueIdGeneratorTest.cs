@@ -118,9 +118,9 @@ namespace SnowMaker.UnitTests
             {
                 generator.NextId("test");
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Assert.AreEqual("Failed to update the OptimisticSyncStore after 3 attempts", exc.Message);
+                StringAssert.StartsWith("Failed to update the data store after 3 attempts.", ex.Message);
                 return;
             }
             Assert.Fail("NextId should have thrown and been caught in the try block");
