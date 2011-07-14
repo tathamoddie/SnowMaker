@@ -2,7 +2,7 @@
 {
     public interface IOptimisticDataStore
     {
-        string GetData();
-        bool TryOptimisticWrite(string data);
+        string GetData(string blockName);
+        bool TryOptimisticWrite(string blockName, string data);
     }
 }

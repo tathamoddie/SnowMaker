@@ -9,17 +9,20 @@ namespace SnowMaker
         readonly int rangeSize;
         readonly int maxRetries;
         readonly IOptimisticDataStore optimisticDataStore;
+        readonly string scopeName;
         Int64 lastId;
         Int64 upperLimit;
 
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
+            string scopeName,
             int rangeSize = 1000,
             int maxRetries = 25)
         {
             this.rangeSize = rangeSize;
             this.maxRetries = maxRetries;
             this.optimisticDataStore = optimisticDataStore;
+            this.scopeName = scopeName;
         }
 
         public long NextId()
@@ -41,7 +44,7 @@ namespace SnowMaker
             // maxRetries + 1 because the first run isn't a 're'try.
             while (retryCount < maxRetries + 1)
             {
-                var data = optimisticDataStore.GetData();
+                var data = optimisticDataStore.GetData(scopeName);
 
                 if (!Int64.TryParse(data, out lastId))
                 {
@@ -52,7 +55,7 @@ namespace SnowMaker
 
                 upperLimit = lastId + rangeSize;
 
-                if (optimisticDataStore.TryOptimisticWrite(upperLimit.ToString()))
+                if (optimisticDataStore.TryOptimisticWrite(scopeName, upperLimit.ToString()))
                 {
                     // update succeeded
                     return;

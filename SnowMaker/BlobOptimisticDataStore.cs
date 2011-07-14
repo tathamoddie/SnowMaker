@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using System.Net;
@@ -7,22 +8,47 @@ namespace SnowMaker
 {
     public class BlobOptimisticDataStore : IOptimisticDataStore
     {
-        readonly CloudBlob blobReference;
+        readonly CloudBlobContainer blobContainer;
 
-        public BlobOptimisticDataStore(CloudStorageAccount account, string container, string address)
+        readonly IDictionary<string, CloudBlob> blobReferences;
+        readonly object blobReferencesLock = new object();
+
+        public BlobOptimisticDataStore(CloudStorageAccount account, string container)
         {
             var blobClient = account.CreateCloudBlobClient();
-            var blobContainer = blobClient.GetContainerReference(container.ToLower());
-            blobReference = blobContainer.GetBlobReference(address);
+            blobContainer = blobClient.GetContainerReference(container.ToLower());
+
+            blobReferences = new Dictionary<string, CloudBlob>();
         }
 
-        public string GetData()
+        public string GetData(string scopeName)
         {
+            var blobReference = GetBlobReference(scopeName);
             return blobReference.DownloadText();
         }
 
-        public bool TryOptimisticWrite(string data)
+        CloudBlob GetBlobReference(string scopeName)
         {
+            CloudBlob blobReference;
+            var found = blobReferences.TryGetValue(scopeName, out blobReference);
+            if (found) return blobReference;
+
+            lock (blobReferencesLock)
+            {
+                found = blobReferences.TryGetValue(scopeName, out blobReference);
+                if (found) return blobReference;
+
+                blobReference = blobContainer.GetBlobReference(scopeName);
+
+                blobReferences.Add(scopeName, blobReference);
+            }
+
+            return blobReference;
+        }
+
+        public bool TryOptimisticWrite(string scopeName, string data)
+        {
+            var blobReference = GetBlobReference(scopeName);
             try
             {
                 blobReference.UploadText(
