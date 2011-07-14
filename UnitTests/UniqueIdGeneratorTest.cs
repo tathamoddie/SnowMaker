@@ -10,7 +10,7 @@ namespace SnowMaker.UnitTests
         [Test]
         public void ConstructorShouldNotRetrieveDataFromStore()
         {
-            var store = Substitute.For<IOptimisticSyncStore>();
+            var store = Substitute.For<IOptimisticDataStore>();
             new UniqueIdGenerator(store);
             store.DidNotReceive().GetData();
         }
@@ -19,7 +19,7 @@ namespace SnowMaker.UnitTests
         [ExpectedException(typeof(Exception))]
         public void NextIdShouldThrowExceptionOnCorruptData()
         {
-            var store = Substitute.For<IOptimisticSyncStore>();
+            var store = Substitute.For<IOptimisticDataStore>();
             store.GetData().Returns("abc");
 
             var generator = new UniqueIdGenerator(store);
@@ -31,7 +31,7 @@ namespace SnowMaker.UnitTests
         [ExpectedException(typeof(Exception))]
         public void NextIdShouldThrowExceptionOnNullData()
         {
-            var store = Substitute.For<IOptimisticSyncStore>();
+            var store = Substitute.For<IOptimisticDataStore>();
             store.GetData().Returns((string)null);
 
             var generator = new UniqueIdGenerator(store);
@@ -42,7 +42,7 @@ namespace SnowMaker.UnitTests
         [Test]
         public void NextIdShouldReturnNumbersSequentially()
         {
-            var store = Substitute.For<IOptimisticSyncStore>();
+            var store = Substitute.For<IOptimisticDataStore>();
             store.GetData().Returns("0", "250");
             store.TryOptimisticWrite("3").Returns(true);
 
@@ -56,7 +56,7 @@ namespace SnowMaker.UnitTests
         [Test]
         public void NextIdShouldRollOverToNewBlockWhenCurrentBlockIsExhausted()
         {
-            var store = Substitute.For<IOptimisticSyncStore>();
+            var store = Substitute.For<IOptimisticDataStore>();
             store.GetData().Returns("0", "250");
             store.TryOptimisticWrite("3").Returns(true);
             store.TryOptimisticWrite("253").Returns(true);
@@ -74,7 +74,7 @@ namespace SnowMaker.UnitTests
         [Test]
         public void NextIdShouldThrowExceptionWhenRetriesAreExhausted()
         {
-            var store = Substitute.For<IOptimisticSyncStore>();
+            var store = Substitute.For<IOptimisticDataStore>();
             store.GetData().Returns("0");
             store.TryOptimisticWrite("3").Returns(false, false, false, true);
 

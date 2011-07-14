@@ -41,10 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlobOptimisticSyncStore.cs">
+    <Compile Include="BlobOptimisticDataStore.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="IOptimisticSyncStore.cs">
+    <Compile Include="IOptimisticDataStore.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IUniqueIdGenerator.cs" />

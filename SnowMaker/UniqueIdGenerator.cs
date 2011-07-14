@@ -8,18 +8,18 @@ namespace SnowMaker
         readonly object idGenerationLock = new object();
         readonly int rangeSize;
         readonly int maxRetries;
-        readonly IOptimisticSyncStore optimisticSyncStore;
+        readonly IOptimisticDataStore optimisticDataStore;
         Int64 lastId;
         Int64 upperLimit;
 
         public UniqueIdGenerator(
-            IOptimisticSyncStore optimisticSyncStore,
+            IOptimisticDataStore optimisticDataStore,
             int rangeSize = 1000,
             int maxRetries = 25)
         {
             this.rangeSize = rangeSize;
             this.maxRetries = maxRetries;
-            this.optimisticSyncStore = optimisticSyncStore;
+            this.optimisticDataStore = optimisticDataStore;
         }
 
         public long NextId()
@@ -41,7 +41,7 @@ namespace SnowMaker
             // maxRetries + 1 because the first run isn't a 're'try.
             while (retryCount < maxRetries + 1)
             {
-                var data = optimisticSyncStore.GetData();
+                var data = optimisticDataStore.GetData();
 
                 if (!Int64.TryParse(data, out lastId))
                 {
@@ -52,7 +52,7 @@ namespace SnowMaker
 
                 upperLimit = lastId + rangeSize;
 
-                if (optimisticSyncStore.TryOptimisticWrite(upperLimit.ToString()))
+                if (optimisticDataStore.TryOptimisticWrite(upperLimit.ToString()))
                 {
                     // update succeeded
                     return;

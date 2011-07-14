@@ -5,11 +5,11 @@ using System.Net;
 
 namespace SnowMaker
 {
-    public class BlobOptimisticSyncStore : IOptimisticSyncStore
+    public class BlobOptimisticDataStore : IOptimisticDataStore
     {
         readonly CloudBlob blobReference;
 
-        public BlobOptimisticSyncStore(CloudStorageAccount account, string container, string address)
+        public BlobOptimisticDataStore(CloudStorageAccount account, string container, string address)
         {
             var blobClient = account.CreateCloudBlobClient();
             var blobContainer = blobClient.GetContainerReference(container.ToLower());
