@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DictionaryExtentionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UniqueIdGeneratorTest.cs" />
   </ItemGroup>
