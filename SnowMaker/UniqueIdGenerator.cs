@@ -6,7 +6,7 @@ namespace SnowMaker
 {
     public class UniqueIdGenerator : IUniqueIdGenerator
     {
-        readonly int rangeSize;
+        readonly int batchSize;
         readonly int maxWriteAttempts;
         readonly IOptimisticDataStore optimisticDataStore;
 
@@ -15,13 +15,13 @@ namespace SnowMaker
 
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
-            int rangeSize = 100,
+            int batchSize = 100,
             int maxWriteAttempts = 25)
         {
             if (maxWriteAttempts < 1)
                 throw new ArgumentOutOfRangeException("maxWriteAttempts", maxWriteAttempts, "maxWriteAttempts must be a positive number.");
 
-            this.rangeSize = rangeSize;
+            this.batchSize = batchSize;
             this.maxWriteAttempts = maxWriteAttempts;
             this.optimisticDataStore = optimisticDataStore;
         }
@@ -62,7 +62,7 @@ namespace SnowMaker
                        , data));
                 }
 
-                state.UpperLimit = state.LastId + rangeSize;
+                state.UpperLimit = state.LastId + batchSize;
 
                 if (optimisticDataStore.TryOptimisticWrite(scopeName, state.UpperLimit.ToString()))
                 {
