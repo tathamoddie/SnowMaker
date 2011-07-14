@@ -13,10 +13,10 @@ namespace SnowMaker
         readonly IDictionary<string, CloudBlob> blobReferences;
         readonly object blobReferencesLock = new object();
 
-        public BlobOptimisticDataStore(CloudStorageAccount account, string container)
+        public BlobOptimisticDataStore(CloudStorageAccount account, string containerName)
         {
             var blobClient = account.CreateCloudBlobClient();
-            blobContainer = blobClient.GetContainerReference(container.ToLower());
+            blobContainer = blobClient.GetContainerReference(containerName.ToLower());
 
             blobReferences = new Dictionary<string, CloudBlob>();
         }
