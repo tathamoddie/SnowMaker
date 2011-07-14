@@ -14,14 +14,13 @@ namespace SnowMaker
 
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
-            string scopeName,
             int rangeSize = 100,
             int maxRetries = 25)
         {
             this.rangeSize = rangeSize;
             this.maxRetries = maxRetries;
             this.optimisticDataStore = optimisticDataStore;
-            defaultScopeName = scopeName;
+            defaultScopeName = "ids";
         }
 
         public long NextId(string scopeName)
