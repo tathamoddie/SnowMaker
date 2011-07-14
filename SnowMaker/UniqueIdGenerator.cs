@@ -7,33 +7,40 @@ namespace SnowMaker
 {
     public class UniqueIdGenerator : IUniqueIdGenerator
     {
-        readonly int batchSize;
-        readonly int maxWriteAttempts;
         readonly IOptimisticDataStore optimisticDataStore;
 
         readonly IDictionary<string, ScopeState> states = new Dictionary<string, ScopeState>();
         readonly object statesLock = new object();
 
-        public UniqueIdGenerator(
-            CloudStorageAccount account,
-            string containerName,
-            int batchSize = 100,
-            int maxWriteAttempts = 25)
-            : this(new BlobOptimisticDataStore(account, containerName), batchSize, maxWriteAttempts)
+        int batchSize = 100;
+        int maxWriteAttempts = 25;
+
+        public UniqueIdGenerator(CloudStorageAccount account, string containerName)
+            : this(new BlobOptimisticDataStore(account, containerName))
         {
         }
 
-        public UniqueIdGenerator(
-            IOptimisticDataStore optimisticDataStore,
-            int batchSize = 100,
-            int maxWriteAttempts = 25)
+        public UniqueIdGenerator(IOptimisticDataStore optimisticDataStore)
         {
-            if (maxWriteAttempts < 1)
-                throw new ArgumentOutOfRangeException("maxWriteAttempts", maxWriteAttempts, "maxWriteAttempts must be a positive number.");
-
-            this.batchSize = batchSize;
-            this.maxWriteAttempts = maxWriteAttempts;
             this.optimisticDataStore = optimisticDataStore;
+        }
+
+        public int BatchSize
+        {
+            get { return batchSize; }
+            set { batchSize = value; }
+        }
+
+        public int MaxWriteAttempts
+        {
+            get { return maxWriteAttempts; }
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentOutOfRangeException("value", maxWriteAttempts, "MaxWriteAttempts must be a positive number.");
+
+                maxWriteAttempts = value;
+            }
         }
 
         public long NextId(string scopeName)
