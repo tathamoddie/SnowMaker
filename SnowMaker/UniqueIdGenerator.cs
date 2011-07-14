@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace SnowMaker
@@ -17,6 +18,9 @@ namespace SnowMaker
             int rangeSize = 100,
             int maxWriteAttempts = 25)
         {
+            if (maxWriteAttempts < 1)
+                throw new ArgumentOutOfRangeException("maxWriteAttempts", maxWriteAttempts, "maxWriteAttempts must be a positive number.");
+
             this.rangeSize = rangeSize;
             this.maxWriteAttempts = maxWriteAttempts;
             this.optimisticDataStore = optimisticDataStore;

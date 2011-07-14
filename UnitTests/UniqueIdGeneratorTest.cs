@@ -16,6 +16,40 @@ namespace SnowMaker.UnitTests
         }
 
         [Test]
+        public void ConstructorShouldThrowArgumentOutOfRangeExceptionWhenMaxWriteAttemptsIsZero()
+        {
+            var store = Substitute.For<IOptimisticDataStore>();
+
+            try
+            {
+                new UniqueIdGenerator(store, 10, 0);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                Assert.AreEqual("maxWriteAttempts", ex.ParamName);
+                return;
+            }
+            Assert.Fail("Excepted an ArgumentOutOfRangeException, but one was never thrown.");
+        }
+
+        [Test]
+        public void ConstructorShouldThrowArgumentOutOfRangeExceptionWhenMaxWriteAttemptsIsNegative()
+        {
+            var store = Substitute.For<IOptimisticDataStore>();
+
+            try
+            {
+                new UniqueIdGenerator(store, 10, -1);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                Assert.AreEqual("maxWriteAttempts", ex.ParamName);
+                return;
+            }
+            Assert.Fail("Excepted an ArgumentOutOfRangeException, but one was never thrown.");
+        }
+
+        [Test]
         [ExpectedException(typeof(UniqueIdGenerationException))]
         public void NextIdShouldThrowExceptionOnCorruptData()
         {
