@@ -52,7 +52,7 @@ namespace SnowMaker
             {
                 var data = optimisticDataStore.GetData(scopeName);
 
-                if (!Int64.TryParse(data, out state.LastId))
+                if (!long.TryParse(data, out state.LastId))
                 {
                     throw new Exception(string.Format(
                        "Data '{0}' in storage was corrupt and could not be parsed as an Int64"
