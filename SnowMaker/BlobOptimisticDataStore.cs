@@ -21,26 +21,26 @@ namespace SnowMaker
             blobReferences = new Dictionary<string, CloudBlob>();
         }
 
-        public string GetData(string scopeName)
+        public string GetData(string blockName)
         {
-            var blobReference = GetBlobReference(scopeName);
+            var blobReference = GetBlobReference(blockName);
             return blobReference.DownloadText();
         }
 
-        CloudBlob GetBlobReference(string scopeName)
+        CloudBlob GetBlobReference(string blockName)
         {
             CloudBlob blobReference;
-            var found = blobReferences.TryGetValue(scopeName, out blobReference);
+            var found = blobReferences.TryGetValue(blockName, out blobReference);
             if (found) return blobReference;
 
             lock (blobReferencesLock)
             {
-                found = blobReferences.TryGetValue(scopeName, out blobReference);
+                found = blobReferences.TryGetValue(blockName, out blobReference);
                 if (found) return blobReference;
 
-                blobReference = blobContainer.GetBlobReference(scopeName);
+                blobReference = blobContainer.GetBlobReference(blockName);
 
-                blobReferences.Add(scopeName, blobReference);
+                blobReferences.Add(blockName, blobReference);
             }
 
             return blobReference;
