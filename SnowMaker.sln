@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnowMaker", "SnowMaker\SnowMaker.csproj", "{0AD4FCE5-6968-4B85-9159-50F63D168907}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E1BB869-9152-48ED-9D43-D846800D7DBF}"
+	ProjectSection(SolutionItems) = preProject
+		SnowMaker.spec = SnowMaker.spec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
