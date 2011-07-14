@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace SnowMaker
@@ -8,9 +9,9 @@ namespace SnowMaker
         readonly int rangeSize;
         readonly int maxRetries;
         readonly IOptimisticDataStore optimisticDataStore;
-        readonly string defaultScopeName;
 
-        readonly ScopeState state = new ScopeState();
+        readonly IDictionary<string, ScopeState> states = new Dictionary<string, ScopeState>();
+        readonly object statesLock = new object();
 
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
@@ -20,32 +21,37 @@ namespace SnowMaker
             this.rangeSize = rangeSize;
             this.maxRetries = maxRetries;
             this.optimisticDataStore = optimisticDataStore;
-            defaultScopeName = "ids";
         }
 
         public long NextId(string scopeName)
         {
-            if (scopeName != defaultScopeName)
-                throw new NotSupportedException("We don't actually support receiving scope names here yet.");
+            var state = GetScopeState(scopeName);
 
             lock (state.IdGenerationLock)
             {
                 if (state.LastId == state.UpperLimit)
-                {
-                    UpdateFromSyncStore();
-                }
+                    UpdateFromSyncStore(scopeName, state);
+
                 return Interlocked.Increment(ref state.LastId);
             }
         }
 
-        private void UpdateFromSyncStore()
+        ScopeState GetScopeState(string scopeName)
+        {
+            return states.GetValue(
+                scopeName,
+                statesLock,
+                () => new ScopeState());
+        }
+
+        private void UpdateFromSyncStore(string scopeName, ScopeState state)
         {
             var retryCount = 0;
 
             // maxRetries + 1 because the first run isn't a 're'try.
             while (retryCount < maxRetries + 1)
             {
-                var data = optimisticDataStore.GetData(defaultScopeName);
+                var data = optimisticDataStore.GetData(scopeName);
 
                 if (!Int64.TryParse(data, out state.LastId))
                 {
@@ -56,7 +62,7 @@ namespace SnowMaker
 
                 state.UpperLimit = state.LastId + rangeSize;
 
-                if (optimisticDataStore.TryOptimisticWrite(defaultScopeName, state.UpperLimit.ToString()))
+                if (optimisticDataStore.TryOptimisticWrite(scopeName, state.UpperLimit.ToString()))
                 {
                     // update succeeded
                     return;

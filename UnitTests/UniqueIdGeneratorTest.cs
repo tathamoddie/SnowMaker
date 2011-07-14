@@ -11,8 +11,8 @@ namespace SnowMaker.UnitTests
         public void ConstructorShouldNotRetrieveDataFromStore()
         {
             var store = Substitute.For<IOptimisticDataStore>();
-            new UniqueIdGenerator(store, "test");
-            store.DidNotReceive().GetData("test");
+            new UniqueIdGenerator(store);
+            store.DidNotReceiveWithAnyArgs().GetData(null);
         }
 
         [Test]
@@ -22,9 +22,9 @@ namespace SnowMaker.UnitTests
             var store = Substitute.For<IOptimisticDataStore>();
             store.GetData("test").Returns("abc");
 
-            var generator = new UniqueIdGenerator(store, "test");
+            var generator = new UniqueIdGenerator(store);
 
-            generator.NextId();
+            generator.NextId("test");
         }
 
         [Test]
@@ -34,9 +34,9 @@ namespace SnowMaker.UnitTests
             var store = Substitute.For<IOptimisticDataStore>();
             store.GetData("test").Returns((string)null);
 
-            var generator = new UniqueIdGenerator(store, "test");
+            var generator = new UniqueIdGenerator(store);
 
-            generator.NextId();
+            generator.NextId("test");
         }
 
         [Test]
@@ -46,11 +46,11 @@ namespace SnowMaker.UnitTests
             store.GetData("test").Returns("0", "250");
             store.TryOptimisticWrite("test", "3").Returns(true);
 
-            var subject = new UniqueIdGenerator(store, "test", 3, 0);
+            var subject = new UniqueIdGenerator(store, 3, 0);
 
-            Assert.AreEqual(1, subject.NextId());
-            Assert.AreEqual(2, subject.NextId());
-            Assert.AreEqual(3, subject.NextId());
+            Assert.AreEqual(1, subject.NextId("test"));
+            Assert.AreEqual(2, subject.NextId("test"));
+            Assert.AreEqual(3, subject.NextId("test"));
         }
 
         [Test]
@@ -61,14 +61,14 @@ namespace SnowMaker.UnitTests
             store.TryOptimisticWrite("test", "3").Returns(true);
             store.TryOptimisticWrite("test", "253").Returns(true);
 
-            var subject = new UniqueIdGenerator(store, "test", 3, 0);
+            var subject = new UniqueIdGenerator(store, 3, 0);
 
-            Assert.AreEqual(1, subject.NextId());
-            Assert.AreEqual(2, subject.NextId());
-            Assert.AreEqual(3, subject.NextId());
-            Assert.AreEqual(251, subject.NextId());
-            Assert.AreEqual(252, subject.NextId());
-            Assert.AreEqual(253, subject.NextId());
+            Assert.AreEqual(1, subject.NextId("test"));
+            Assert.AreEqual(2, subject.NextId("test"));
+            Assert.AreEqual(3, subject.NextId("test"));
+            Assert.AreEqual(251, subject.NextId("test"));
+            Assert.AreEqual(252, subject.NextId("test"));
+            Assert.AreEqual(253, subject.NextId("test"));
         }
 
         [Test]
@@ -78,11 +78,11 @@ namespace SnowMaker.UnitTests
             store.GetData("test").Returns("0");
             store.TryOptimisticWrite("test", "3").Returns(false, false, false, true);
 
-            var generator = new UniqueIdGenerator(store, "test", 3, 2);
+            var generator = new UniqueIdGenerator(store, 3, 2);
 
             try
             {
-                generator.NextId();
+                generator.NextId("test");
             }
             catch (Exception exc)
             {
