@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.WindowsAzure;
 using System.Threading;
 
-namespace Evolve.WindowsAzure
+namespace SnowMaker
 {
     /// <summary>
     /// Used to generate simple, unique identifiers across multiple environments, processes and/or threads. Requires a global data

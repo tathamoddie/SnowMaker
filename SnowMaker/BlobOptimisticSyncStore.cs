@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using System.Net;
 
-namespace Evolve.WindowsAzure
+namespace SnowMaker
 {
     /// <summary>
     /// Stores a single string value in Blob storage and provides an easy way to update 
