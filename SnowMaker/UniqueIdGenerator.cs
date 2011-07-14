@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.WindowsAzure;
 
 namespace SnowMaker
 {
@@ -12,6 +13,15 @@ namespace SnowMaker
 
         readonly IDictionary<string, ScopeState> states = new Dictionary<string, ScopeState>();
         readonly object statesLock = new object();
+
+        public UniqueIdGenerator(
+            CloudStorageAccount account,
+            string containerName,
+            int batchSize = 100,
+            int maxWriteAttempts = 25)
+            : this(new BlobOptimisticDataStore(account, containerName), batchSize, maxWriteAttempts)
+        {
+        }
 
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
