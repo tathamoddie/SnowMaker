@@ -3,11 +3,6 @@ using System.Threading;
 
 namespace SnowMaker
 {
-    /// <summary>
-    /// Used to generate simple, unique identifiers across multiple environments, processes and/or threads. Requires a global data
-    /// store that can be used to store the last upper limit (must implement the IOptimisticSyncStore interface). Contention is reduced
-    /// by allocating ranges to each instance of the UniqueIdGenerator. The RangeSize should increase proportionally with the fre
-    /// </summary>
     public class UniqueIdGenerator
     {
         readonly object padLock = new object();

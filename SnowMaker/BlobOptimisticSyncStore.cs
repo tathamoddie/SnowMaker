@@ -5,10 +5,6 @@ using System.Net;
 
 namespace SnowMaker
 {
-    /// <summary>
-    /// Stores a single string value in Blob storage and provides an easy way to update 
-    /// the value using Optimistic Concurrency.
-    /// </summary>
     public class BlobOptimisticSyncStore : IOptimisticSyncStore
     {
         readonly CloudBlob blobReference;
