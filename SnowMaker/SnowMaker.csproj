@@ -41,7 +41,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlobOptimisticSyncStore.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IOptimisticSyncStore.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UniqueIdGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SnowMaker.nuspec" />
