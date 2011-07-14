@@ -5,7 +5,7 @@ namespace SnowMaker
 {
     public class UniqueIdGenerator : IUniqueIdGenerator
     {
-        readonly object padLock = new object();
+        readonly object idGenerationLock = new object();
         readonly int rangeSize;
         readonly int maxRetries;
         readonly IOptimisticSyncStore optimisticSyncStore;
@@ -26,7 +26,7 @@ namespace SnowMaker
 
         public long NextId()
         {
-            lock (padLock)
+            lock (idGenerationLock)
             {
                 if (lastId == upperLimit)
                 {
