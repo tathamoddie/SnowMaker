@@ -11,41 +11,35 @@ namespace SnowMaker
     /// </summary>
     public class BlobOptimisticSyncStore : IOptimisticSyncStore
     {
-        private readonly CloudBlob _blobReference;
+        readonly CloudBlob blobReference;
 
         public BlobOptimisticSyncStore(CloudStorageAccount account, string container, string address)
         {
             var blobClient = account.CreateCloudBlobClient();
             var blobContainer = blobClient.GetContainerReference(container.ToLower());
-            _blobReference = blobContainer.GetBlobReference(address);
+            blobReference = blobContainer.GetBlobReference(address);
         }
 
         public string GetData()
         {
-            string data = _blobReference.DownloadText();
-            return data;
+            return blobReference.DownloadText();
         }
 
         public bool TryOptimisticWrite(string data)
         {
             try
             {
-                _blobReference.UploadText(
+                blobReference.UploadText(
                     data,
                     Encoding.Default,
-                    new BlobRequestOptions { 
-                        AccessCondition = AccessCondition.IfMatch(_blobReference.Properties.ETag) });
+                    new BlobRequestOptions { AccessCondition = AccessCondition.IfMatch(blobReference.Properties.ETag) });
             }
             catch (StorageClientException exc)
             {
                 if (exc.StatusCode == HttpStatusCode.PreconditionFailed)
-                {
                     return false;
-                }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
             return true;
         }

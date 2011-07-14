@@ -10,21 +10,21 @@ namespace SnowMaker
     /// </summary>
     public class UniqueIdGenerator
     {
-        private readonly object _padLock = new object();
-        private Int64 _lastId;
-        private Int64 _upperLimit;
-        private int _rangeSize;
-        private int _maxRetries;
-        private IOptimisticSyncStore _optimisticSyncStore;
+        readonly object padLock = new object();
+        readonly int rangeSize;
+        readonly int maxRetries;
+        readonly IOptimisticSyncStore optimisticSyncStore;
+        Int64 lastId;
+        Int64 upperLimit;
 
         public UniqueIdGenerator(
             IOptimisticSyncStore optimisticSyncStore,
             int rangeSize = 1000,
             int maxRetries = 25)
         {
-            _rangeSize = rangeSize;
-            _maxRetries = maxRetries;
-            _optimisticSyncStore = optimisticSyncStore;
+            this.rangeSize = rangeSize;
+            this.maxRetries = maxRetries;
+            this.optimisticSyncStore = optimisticSyncStore;
             // need to load the initial configuration
             UpdateFromSyncStore();
         }
@@ -35,35 +35,35 @@ namespace SnowMaker
         /// <returns></returns>
         public Int64 NextId()
         {
-            lock (_padLock)
+            lock (padLock)
             {
-                if (_lastId == _upperLimit)
+                if (lastId == upperLimit)
                 {
                     UpdateFromSyncStore();
                 }
-                return Interlocked.Increment(ref _lastId);
+                return Interlocked.Increment(ref lastId);
             }
         }
 
         private void UpdateFromSyncStore()
         {
-            int retryCount = 0;
+            var retryCount = 0;
 
             // maxRetries + 1 because the first run isn't a 're'try.
-            while (retryCount < _maxRetries + 1)
+            while (retryCount < maxRetries + 1)
             {
-                string data = _optimisticSyncStore.GetData();
+                var data = optimisticSyncStore.GetData();
 
-                if (!Int64.TryParse(data, out _lastId))
+                if (!Int64.TryParse(data, out lastId))
                 {
                     throw new Exception(string.Format(
                        "Data '{0}' in storage was corrupt and could not be parsed as an Int64"
                        , data));
                 }
 
-                _upperLimit = _lastId + _rangeSize;
+                upperLimit = lastId + rangeSize;
 
-                if (_optimisticSyncStore.TryOptimisticWrite(_upperLimit.ToString()))
+                if (optimisticSyncStore.TryOptimisticWrite(upperLimit.ToString()))
                 {
                     // update succeeded
                     return;
