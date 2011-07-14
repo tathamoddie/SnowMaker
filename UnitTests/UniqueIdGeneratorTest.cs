@@ -16,7 +16,7 @@ namespace SnowMaker.UnitTests
         }
 
         [Test]
-        [ExpectedException(typeof(Exception))]
+        [ExpectedException(typeof(UniqueIdGenerationException))]
         public void NextIdShouldThrowExceptionOnCorruptData()
         {
             var store = Substitute.For<IOptimisticDataStore>();
@@ -28,7 +28,7 @@ namespace SnowMaker.UnitTests
         }
 
         [Test]
-        [ExpectedException(typeof(Exception))]
+        [ExpectedException(typeof(UniqueIdGenerationException))]
         public void NextIdShouldThrowExceptionOnNullData()
         {
             var store = Substitute.For<IOptimisticDataStore>();

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 namespace SnowMaker
@@ -54,7 +53,7 @@ namespace SnowMaker
 
                 if (!long.TryParse(data, out state.LastId))
                 {
-                    throw new Exception(string.Format(
+                    throw new UniqueIdGenerationException(string.Format(
                        "Data '{0}' in storage was corrupt and could not be parsed as an Int64"
                        , data));
                 }
@@ -70,7 +69,7 @@ namespace SnowMaker
                 writesAttempted++;
             }
 
-            throw new Exception(string.Format(
+            throw new UniqueIdGenerationException(string.Format(
                 "Failed to update the OptimisticSyncStore after {0} attempts",
                 writesAttempted));
         }

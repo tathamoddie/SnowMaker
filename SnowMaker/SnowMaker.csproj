@@ -51,6 +51,7 @@
     <Compile Include="IUniqueIdGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScopeState.cs" />
+    <Compile Include="UniqueIdGenerationException.cs" />
     <Compile Include="UniqueIdGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
