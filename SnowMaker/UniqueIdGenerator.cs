@@ -5,13 +5,12 @@ namespace SnowMaker
 {
     public class UniqueIdGenerator : IUniqueIdGenerator
     {
-        readonly object idGenerationLock = new object();
         readonly int rangeSize;
         readonly int maxRetries;
         readonly IOptimisticDataStore optimisticDataStore;
         readonly string scopeName;
-        Int64 lastId;
-        Int64 upperLimit;
+
+        readonly ScopeState state = new ScopeState();
 
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
@@ -27,13 +26,13 @@ namespace SnowMaker
 
         public long NextId()
         {
-            lock (idGenerationLock)
+            lock (state.IdGenerationLock)
             {
-                if (lastId == upperLimit)
+                if (state.LastId == state.UpperLimit)
                 {
                     UpdateFromSyncStore();
                 }
-                return Interlocked.Increment(ref lastId);
+                return Interlocked.Increment(ref state.LastId);
             }
         }
 
@@ -46,16 +45,16 @@ namespace SnowMaker
             {
                 var data = optimisticDataStore.GetData(scopeName);
 
-                if (!Int64.TryParse(data, out lastId))
+                if (!Int64.TryParse(data, out state.LastId))
                 {
                     throw new Exception(string.Format(
                        "Data '{0}' in storage was corrupt and could not be parsed as an Int64"
                        , data));
                 }
 
-                upperLimit = lastId + rangeSize;
+                state.UpperLimit = state.LastId + rangeSize;
 
-                if (optimisticDataStore.TryOptimisticWrite(scopeName, upperLimit.ToString()))
+                if (optimisticDataStore.TryOptimisticWrite(scopeName, state.UpperLimit.ToString()))
                 {
                     // update succeeded
                     return;
