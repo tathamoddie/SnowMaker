@@ -44,7 +44,7 @@ namespace SnowMaker
                 () => new ScopeState());
         }
 
-        private void UpdateFromSyncStore(string scopeName, ScopeState state)
+        void UpdateFromSyncStore(string scopeName, ScopeState state)
         {
             var retryCount = 0;
 
