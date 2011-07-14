@@ -16,7 +16,7 @@ namespace SnowMaker
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
             string scopeName,
-            int rangeSize = 1000,
+            int rangeSize = 100,
             int maxRetries = 25)
         {
             this.rangeSize = rangeSize;
