@@ -7,7 +7,7 @@ namespace SnowMaker
     public class UniqueIdGenerator : IUniqueIdGenerator
     {
         readonly int rangeSize;
-        readonly int maxRetries;
+        readonly int maxWriteAttempts;
         readonly IOptimisticDataStore optimisticDataStore;
 
         readonly IDictionary<string, ScopeState> states = new Dictionary<string, ScopeState>();
@@ -16,10 +16,10 @@ namespace SnowMaker
         public UniqueIdGenerator(
             IOptimisticDataStore optimisticDataStore,
             int rangeSize = 100,
-            int maxRetries = 25)
+            int maxWriteAttempts = 25)
         {
             this.rangeSize = rangeSize;
-            this.maxRetries = maxRetries;
+            this.maxWriteAttempts = maxWriteAttempts;
             this.optimisticDataStore = optimisticDataStore;
         }
 
@@ -46,10 +46,9 @@ namespace SnowMaker
 
         void UpdateFromSyncStore(string scopeName, ScopeState state)
         {
-            var retryCount = 0;
+            var writesAttempted = 0;
 
-            // maxRetries + 1 because the first run isn't a 're'try.
-            while (retryCount < maxRetries + 1)
+            while (writesAttempted < maxWriteAttempts)
             {
                 var data = optimisticDataStore.GetData(scopeName);
 
@@ -68,13 +67,12 @@ namespace SnowMaker
                     return;
                 }
 
-                retryCount++;
-                // update failed, go back around the loop
+                writesAttempted++;
             }
 
             throw new Exception(string.Format(
                 "Failed to update the OptimisticSyncStore after {0} attempts",
-                retryCount));
+                writesAttempted));
         }
     }
 }
