@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace SnowMaker
 {
-    public class UniqueIdGenerator
+    public class UniqueIdGenerator : IUniqueIdGenerator
     {
         readonly object padLock = new object();
         readonly int rangeSize;
