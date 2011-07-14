@@ -24,11 +24,7 @@ namespace SnowMaker
             UpdateFromSyncStore();
         }
 
-        /// <summary>
-        /// Fetches the next available unique ID
-        /// </summary>
-        /// <returns></returns>
-        public Int64 NextId()
+        public long NextId()
         {
             lock (padLock)
             {
