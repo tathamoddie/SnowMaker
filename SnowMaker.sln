@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnowMaker", "SnowMaker\Snow
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E1BB869-9152-48ED-9D43-D846800D7DBF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{2D578C72-24A1-4EE0-A5E8-30D76FC297B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{0AD4FCE5-6968-4B85-9159-50F63D168907}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AD4FCE5-6968-4B85-9159-50F63D168907}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AD4FCE5-6968-4B85-9159-50F63D168907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D578C72-24A1-4EE0-A5E8-30D76FC297B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D578C72-24A1-4EE0-A5E8-30D76FC297B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D578C72-24A1-4EE0-A5E8-30D76FC297B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D578C72-24A1-4EE0-A5E8-30D76FC297B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
