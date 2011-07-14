@@ -1,55 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading;
+using NUnit.Framework;
 
-namespace Evolve.WindowsAzure.Tests
+namespace SnowMaker.UnitTests
 {
-    [TestClass]
+    [TestFixture]
     public class UniqueIdGeneratorTest
     {
-        [TestMethod]
-        public void Test_Constructor_Uses_Store_Correctly_Under_Canonical_Load()
+        [Test]
+        public void ConstructorShouldRetrieveNewIdBlockFromStore()
         {
-            TestOptimisticSyncStore mock = new TestOptimisticSyncStore();
-            mock.GetDataValue = "100";
-            mock.TryWriteResult = true;
+            var mock = new TestOptimisticSyncStore {GetDataValue = "100", TryWriteResult = true};
             Assert.AreEqual(mock.SetDataValue, null);
-            UniqueIdGenerator subject = new UniqueIdGenerator(mock, 2, 2);
+
+            var subject = new UniqueIdGenerator(mock, 2, 2);
+
             // should retrieve 100, add the range to get a new upper limit of 102
             Assert.AreEqual(mock.SetDataValue, "102");
             Assert.AreEqual(101, subject.NextId());
             Assert.AreEqual(102, subject.NextId());
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(Exception))]
-        public void Test_Constructor_Blows_On_Corrupt_Store()
+        public void ConstructorShouldThrowExceptionOnCorruptStore()
         {
-            TestOptimisticSyncStore mock = new TestOptimisticSyncStore();
-            mock.GetDataValue = "1oo";
-            UniqueIdGenerator subject = new UniqueIdGenerator(mock);
+            var mock = new TestOptimisticSyncStore {GetDataValue = "1oo"};
+            new UniqueIdGenerator(mock);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(Exception))]
-        public void Test_Constructor_Blows_On_Null_Store()
+        public void ConstructorShouldThrowExceptionOnNullStore()
         {
-            TestOptimisticSyncStore mock = new TestOptimisticSyncStore();
-            mock.GetDataValue = null;
-            UniqueIdGenerator subject = new UniqueIdGenerator(mock);
+            var mock = new TestOptimisticSyncStore {GetDataValue = null};
+            new UniqueIdGenerator(mock);
         }
 
-        [TestMethod]
-        public void Test_NextId_Blows_On_Corrupt_Data()
+        [Test]
+        public void NextIdShouldThrowExceptionOnCorruptData()
         {
-            TestOptimisticSyncStore mock = new TestOptimisticSyncStore();
-            mock.GetDataValue = "100";
-            mock.TryWriteResult = true;
+            var mock = new TestOptimisticSyncStore {GetDataValue = "100", TryWriteResult = true};
             //single digit range to ensure store is used for every id
-            UniqueIdGenerator subject = new UniqueIdGenerator(mock, 1, 2);
+            var subject = new UniqueIdGenerator(mock, 1, 2);
             mock.GetDataValue = "nonsense";
             subject.NextId();
             try
@@ -64,13 +56,11 @@ namespace Evolve.WindowsAzure.Tests
             Assert.Fail("NextId should have thrown inside try block before this Fail Assertion");
         }
 
-        [TestMethod]
-        public void Test_NextId_Deals_Numbers_Sequentially()
+        [Test]
+        public void NextIdShouldReturnNumbersSequentially()
         {
-            TestOptimisticSyncStore mock = new TestOptimisticSyncStore();
-            mock.GetDataValue = "1";
-            mock.TryWriteResult = true;
-            UniqueIdGenerator subject = new UniqueIdGenerator(mock, 3, 0);
+            var mock = new TestOptimisticSyncStore {GetDataValue = "1", TryWriteResult = true};
+            var subject = new UniqueIdGenerator(mock, 3, 0);
             mock.GetDataValue = "250";
             Assert.AreEqual(2, subject.NextId());
             Assert.AreEqual(3, subject.NextId());
@@ -79,15 +69,13 @@ namespace Evolve.WindowsAzure.Tests
             Assert.AreEqual(252, subject.NextId());
         }
 
-        [TestMethod]
-        public void Test_Retries_Are_Exhausted()
+        [Test]
+        public void ConstructorShouldThrowExceptionWhenRetriesAreExhausted()
         {
-            TestOptimisticSyncStore mock = new TestOptimisticSyncStore();
-            mock.GetDataValue = "0";
-            mock.TryWriteResult = false;
+            var mock = new TestOptimisticSyncStore {GetDataValue = "0", TryWriteResult = false};
             try
             {
-                UniqueIdGenerator subject = new UniqueIdGenerator(mock, 3, 2);
+                new UniqueIdGenerator(mock, 3, 2);
             }
             catch (Exception exc)
             {
@@ -98,27 +86,4 @@ namespace Evolve.WindowsAzure.Tests
             Assert.Fail("NextId should have thrown and been caught in the try block");
         }
     }
-
-    public class TestOptimisticSyncStore : IOptimisticSyncStore
-    {
-        private int _tryWriteCount = 0;
-
-        public string GetDataValue { get; set; }
-        public string SetDataValue { get; private set; }
-        public bool TryWriteResult { get; set; }
-        public int TryWriteCount { get { return _tryWriteCount; } }
-
-        public string GetData()
-        {
-            return GetDataValue; 
-        }
-
-        public bool TryOptimisticWrite(string data)
-        {
-            Interlocked.Increment(ref _tryWriteCount);
-            SetDataValue = data;
-            return TryWriteResult;
-        }
-    }
-
 }
