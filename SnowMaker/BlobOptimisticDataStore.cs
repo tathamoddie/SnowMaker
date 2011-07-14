@@ -29,21 +29,10 @@ namespace SnowMaker
 
         CloudBlob GetBlobReference(string blockName)
         {
-            CloudBlob blobReference;
-            var found = blobReferences.TryGetValue(blockName, out blobReference);
-            if (found) return blobReference;
-
-            lock (blobReferencesLock)
-            {
-                found = blobReferences.TryGetValue(blockName, out blobReference);
-                if (found) return blobReference;
-
-                blobReference = blobContainer.GetBlobReference(blockName);
-
-                blobReferences.Add(blockName, blobReference);
-            }
-
-            return blobReference;
+            return blobReferences.GetValue(
+                blockName,
+                blobReferencesLock,
+                () => blobContainer.GetBlobReference(blockName));
         }
 
         public bool TryOptimisticWrite(string scopeName, string data)
