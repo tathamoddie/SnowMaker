@@ -20,8 +20,6 @@ namespace SnowMaker
             this.rangeSize = rangeSize;
             this.maxRetries = maxRetries;
             this.optimisticSyncStore = optimisticSyncStore;
-            // need to load the initial configuration
-            UpdateFromSyncStore();
         }
 
         public long NextId()

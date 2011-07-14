@@ -1,4 +1,5 @@
 ﻿using System;
+using NSubstitute;
 using NUnit.Framework;
 
 namespace SnowMaker.UnitTests
@@ -7,79 +8,84 @@ namespace SnowMaker.UnitTests
     public class UniqueIdGeneratorTest
     {
         [Test]
-        public void ConstructorShouldRetrieveNewIdBlockFromStore()
+        public void ConstructorShouldNotRetrieveDataFromStore()
         {
-            var mock = new TestOptimisticSyncStore {GetDataValue = "100", TryWriteResult = true};
-            Assert.AreEqual(mock.SetDataValue, null);
-
-            var subject = new UniqueIdGenerator(mock, 2, 2);
-
-            // should retrieve 100, add the range to get a new upper limit of 102
-            Assert.AreEqual(mock.SetDataValue, "102");
-            Assert.AreEqual(101, subject.NextId());
-            Assert.AreEqual(102, subject.NextId());
+            var store = Substitute.For<IOptimisticSyncStore>();
+            new UniqueIdGenerator(store);
+            store.DidNotReceive().GetData();
         }
 
         [Test]
         [ExpectedException(typeof(Exception))]
-        public void ConstructorShouldThrowExceptionOnCorruptStore()
-        {
-            var mock = new TestOptimisticSyncStore {GetDataValue = "1oo"};
-            new UniqueIdGenerator(mock);
-        }
-
-        [Test]
-        [ExpectedException(typeof(Exception))]
-        public void ConstructorShouldThrowExceptionOnNullStore()
-        {
-            var mock = new TestOptimisticSyncStore {GetDataValue = null};
-            new UniqueIdGenerator(mock);
-        }
-
-        [Test]
         public void NextIdShouldThrowExceptionOnCorruptData()
         {
-            var mock = new TestOptimisticSyncStore {GetDataValue = "100", TryWriteResult = true};
-            //single digit range to ensure store is used for every id
-            var subject = new UniqueIdGenerator(mock, 1, 2);
-            mock.GetDataValue = "nonsense";
-            subject.NextId();
-            try
-            {
-                subject.NextId();
-            }
-            catch (Exception)
-            {
-                return;
-            }
+            var store = Substitute.For<IOptimisticSyncStore>();
+            store.GetData().Returns("abc");
 
-            Assert.Fail("NextId should have thrown inside try block before this Fail Assertion");
+            var generator = new UniqueIdGenerator(store);
+
+            generator.NextId();
+        }
+
+        [Test]
+        [ExpectedException(typeof(Exception))]
+        public void NextIdShouldThrowExceptionOnNullData()
+        {
+            var store = Substitute.For<IOptimisticSyncStore>();
+            store.GetData().Returns((string)null);
+
+            var generator = new UniqueIdGenerator(store);
+
+            generator.NextId();
         }
 
         [Test]
         public void NextIdShouldReturnNumbersSequentially()
         {
-            var mock = new TestOptimisticSyncStore {GetDataValue = "1", TryWriteResult = true};
-            var subject = new UniqueIdGenerator(mock, 3, 0);
-            mock.GetDataValue = "250";
+            var store = Substitute.For<IOptimisticSyncStore>();
+            store.GetData().Returns("0", "250");
+            store.TryOptimisticWrite("3").Returns(true);
+
+            var subject = new UniqueIdGenerator(store, 3, 0);
+
+            Assert.AreEqual(1, subject.NextId());
             Assert.AreEqual(2, subject.NextId());
             Assert.AreEqual(3, subject.NextId());
-            Assert.AreEqual(4, subject.NextId());
-            Assert.AreEqual(251, subject.NextId());
-            Assert.AreEqual(252, subject.NextId());
         }
 
         [Test]
-        public void ConstructorShouldThrowExceptionWhenRetriesAreExhausted()
+        public void NextIdShouldRollOverToNewBlockWhenCurrentBlockIsExhausted()
         {
-            var mock = new TestOptimisticSyncStore {GetDataValue = "0", TryWriteResult = false};
+            var store = Substitute.For<IOptimisticSyncStore>();
+            store.GetData().Returns("0", "250");
+            store.TryOptimisticWrite("3").Returns(true);
+            store.TryOptimisticWrite("253").Returns(true);
+
+            var subject = new UniqueIdGenerator(store, 3, 0);
+
+            Assert.AreEqual(1, subject.NextId());
+            Assert.AreEqual(2, subject.NextId());
+            Assert.AreEqual(3, subject.NextId());
+            Assert.AreEqual(251, subject.NextId());
+            Assert.AreEqual(252, subject.NextId());
+            Assert.AreEqual(253, subject.NextId());
+        }
+
+        [Test]
+        public void NextIdShouldThrowExceptionWhenRetriesAreExhausted()
+        {
+            var store = Substitute.For<IOptimisticSyncStore>();
+            store.GetData().Returns("0");
+            store.TryOptimisticWrite("3").Returns(false, false, false, true);
+
+            var generator = new UniqueIdGenerator(store, 3, 2);
+
             try
             {
-                new UniqueIdGenerator(mock, 3, 2);
+                generator.NextId();
             }
             catch (Exception exc)
             {
-                Assert.AreEqual(3, mock.TryWriteCount);
                 Assert.AreEqual("Failed to update the OptimisticSyncStore after 3 attempts", exc.Message);
                 return;
             }
