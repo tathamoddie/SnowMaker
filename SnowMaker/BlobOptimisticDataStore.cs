@@ -53,7 +53,37 @@ namespace SnowMaker
             return blobReferences.GetValue(
                 blockName,
                 blobReferencesLock,
-                () => blobContainer.GetBlobReference(blockName));
+                () => InitializeBlobReference(blockName));
+        }
+
+        private CloudBlob InitializeBlobReference(string blockName)
+        {
+            var blobReference = blobContainer.GetBlobReference(blockName);
+
+            try
+            {
+                blobReference.DownloadText();
+            }
+            catch (StorageClientException downloadException)
+            {
+                if (downloadException.StatusCode != HttpStatusCode.NotFound)
+                    throw;
+
+                try
+                {
+                    blobReference.UploadText(
+                        "0",
+                        Encoding.Default,
+                        new BlobRequestOptions { AccessCondition = AccessCondition.IfNoneMatch("*") });
+                }
+                catch (StorageClientException uploadException)
+                {
+                    if (uploadException.StatusCode != HttpStatusCode.Conflict)
+                        throw;
+                }
+            }
+
+            return blobReference;
         }
     }
 }
