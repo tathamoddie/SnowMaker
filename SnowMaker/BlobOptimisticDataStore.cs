@@ -17,6 +17,7 @@ namespace SnowMaker
         {
             var blobClient = account.CreateCloudBlobClient();
             blobContainer = blobClient.GetContainerReference(containerName.ToLower());
+            blobContainer.CreateIfNotExist();
 
             blobReferences = new Dictionary<string, CloudBlob>();
         }
