@@ -15,8 +15,8 @@ namespace SnowMaker
         int batchSize = 100;
         int maxWriteAttempts = 25;
 
-        public UniqueIdGenerator(CloudStorageAccount account, string containerName)
-            : this(new BlobOptimisticDataStore(account, containerName))
+        public UniqueIdGenerator(CloudStorageAccount account)
+            : this(new BlobOptimisticDataStore(account, "uniqueids"))
         {
         }
 
