@@ -13,7 +13,7 @@ $SolutionRoot = Split-Path -Path $PSScriptFilePath -Parent
 
 # Build the NuGet package
 $ProjectPath = Join-Path -Path $SolutionRoot -ChildPath "SnowMaker\SnowMaker.csproj"
-& nuget pack $ProjectPath -Symbols -Prop Configuration=Release -OutputDirectory $SolutionRoot
+& nuget pack $ProjectPath -Prop Configuration=Release -OutputDirectory $SolutionRoot
 if (-not $?)
 {
 	throw "The NuGet process returned an error code."
