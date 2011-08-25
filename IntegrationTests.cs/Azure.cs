@@ -86,6 +86,30 @@ namespace IntegrationTests.cs
             }
         }
 
+        [Test]
+        public void ShouldReturnIdsFromThirdBatchIfSecondBatchTakenByAnotherGenerator()
+        {
+            // Arrange
+            var account = CloudStorageAccount.DevelopmentStorageAccount;
+            using (var testScope = new TestScope(account))
+            {
+                var store1 = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator1 = new UniqueIdGenerator(store1) { BatchSize = 3 };
+                var store2 = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator2 = new UniqueIdGenerator(store2) { BatchSize = 3 };
+
+                // Act
+                generator1.NextId(testScope.IdScopeName); //0
+                generator1.NextId(testScope.IdScopeName); //1
+                generator1.NextId(testScope.IdScopeName); //2
+                generator2.NextId(testScope.IdScopeName); //3
+                var lastId = generator1.NextId(testScope.IdScopeName); //6
+
+                // Assert
+                Assert.AreEqual(6, lastId);
+            }
+        }
+
         public class TestScope : IDisposable
         {
             readonly CloudBlobClient blobClient;
