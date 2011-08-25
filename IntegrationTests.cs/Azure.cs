@@ -10,14 +10,14 @@ namespace IntegrationTests.cs
     public class Azure
     {
         [Test]
-        public void FirstIdInNewScopeShouldBeZero()
+        public void ShouldReturnZeroForFirstIdInNewScope()
         {
             // Arrange
             var account = CloudStorageAccount.DevelopmentStorageAccount;
             using (var testScope = new TestScope(account))
             {
                 var store = new BlobOptimisticDataStore(account, testScope.ContainerName);
-                var generator = new UniqueIdGenerator(store);
+                var generator = new UniqueIdGenerator(store) {BatchSize = 3};
                 
                 // Act
                 var generatedId = generator.NextId(testScope.IdScopeName);
@@ -27,25 +27,90 @@ namespace IntegrationTests.cs
             }
         }
 
+        [Test]
+        public void ShouldInitializeBlobForFirstIdInNewScope()
+        {
+            // Arrange
+            var account = CloudStorageAccount.DevelopmentStorageAccount;
+            using (var testScope = new TestScope(account))
+            {
+                var store = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator = new UniqueIdGenerator(store) {BatchSize = 3};
+
+                // Act
+                generator.NextId(testScope.IdScopeName); //0
+
+                // Assert
+                Assert.AreEqual("3", testScope.ReadCurrentBlobValue());
+            }
+        }
+
+        [Test]
+        public void ShouldNotUpdateBlobAtEndOfBatch()
+        {
+            // Arrange
+            var account = CloudStorageAccount.DevelopmentStorageAccount;
+            using (var testScope = new TestScope(account))
+            {
+                var store = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator = new UniqueIdGenerator(store) { BatchSize = 3 };
+
+                // Act
+                generator.NextId(testScope.IdScopeName); //0
+                generator.NextId(testScope.IdScopeName); //1
+                generator.NextId(testScope.IdScopeName); //2
+
+                // Assert
+                Assert.AreEqual("3", testScope.ReadCurrentBlobValue());
+            }
+        }
+
+        [Test]
+        public void ShouldUpdateBlobWhenGeneratingNextIdAfterEndOfBatch()
+        {
+            // Arrange
+            var account = CloudStorageAccount.DevelopmentStorageAccount;
+            using (var testScope = new TestScope(account))
+            {
+                var store = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator = new UniqueIdGenerator(store) { BatchSize = 3 };
+
+                // Act
+                generator.NextId(testScope.IdScopeName); //0
+                generator.NextId(testScope.IdScopeName); //1
+                generator.NextId(testScope.IdScopeName); //2
+                generator.NextId(testScope.IdScopeName); //3
+
+                // Assert
+                Assert.AreEqual("6", testScope.ReadCurrentBlobValue());
+            }
+        }
+
         public class TestScope : IDisposable
         {
-            readonly CloudStorageAccount account;
+            readonly CloudBlobClient blobClient;
 
             public TestScope(CloudStorageAccount account)
             {
-                this.account = account;
-                
                 var ticks = DateTime.UtcNow.Ticks;
                 IdScopeName = string.Format("snowmakertest{0}", ticks);
                 ContainerName = string.Format("snowmakertest{0}", ticks);
+
+                blobClient = account.CreateCloudBlobClient();
             }
 
             public string IdScopeName { get; private set; }
             public string ContainerName { get; private set; }
 
+            public string ReadCurrentBlobValue()
+            {
+                var blobContainer = blobClient.GetContainerReference(ContainerName);
+                var blob = blobContainer.GetBlobReference(IdScopeName);
+                return blob.DownloadText();
+            }
+
             public void Dispose()
             {
-                var blobClient = account.CreateCloudBlobClient();
                 var blobContainer = blobClient.GetContainerReference(ContainerName);
                 blobContainer.Delete();
             }

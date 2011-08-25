@@ -49,7 +49,7 @@ namespace SnowMaker
 
             lock (state.IdGenerationLock)
             {
-                if (state.LastId == state.UpperLimit)
+                if (state.LastId == state.HighestIdAvailableInBatch)
                     UpdateFromSyncStore(scopeName, state);
 
                 return Interlocked.Increment(ref state.LastId);
@@ -72,15 +72,18 @@ namespace SnowMaker
             {
                 var data = optimisticDataStore.GetData(scopeName);
 
-                if (!long.TryParse(data, out state.LastId))
+                long nextId;
+                if (!long.TryParse(data, out nextId))
                     throw new UniqueIdGenerationException(string.Format(
                        "The id seed returned from storage for scope '{0}' was corrupt, and could not be parsed as a long. The data returned was: {1}",
                        scopeName,
                        data));
 
-                state.UpperLimit = state.LastId + batchSize;
+                state.LastId = nextId - 1;
+                state.HighestIdAvailableInBatch = nextId - 1 + batchSize;
+                var firstIdInNextBatch = state.HighestIdAvailableInBatch + 1;
 
-                if (optimisticDataStore.TryOptimisticWrite(scopeName, state.UpperLimit.ToString()))
+                if (optimisticDataStore.TryOptimisticWrite(scopeName, firstIdInNextBatch.ToString()))
                     return;
 
                 writesAttempted++;

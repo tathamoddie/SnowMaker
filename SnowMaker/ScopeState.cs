@@ -4,6 +4,6 @@ namespace SnowMaker
     {
         public readonly object IdGenerationLock = new object();
         public long LastId;
-        public long UpperLimit;
+        public long HighestIdAvailableInBatch;
     }
 }
