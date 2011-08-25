@@ -73,9 +73,9 @@ namespace SnowMaker.UnitTests
                 BatchSize = 3
             };
 
+            Assert.AreEqual(0, subject.NextId("test"));
             Assert.AreEqual(1, subject.NextId("test"));
             Assert.AreEqual(2, subject.NextId("test"));
-            Assert.AreEqual(3, subject.NextId("test"));
         }
 
         [Test]
@@ -91,12 +91,12 @@ namespace SnowMaker.UnitTests
                 BatchSize = 3
             };
 
+            Assert.AreEqual(0, subject.NextId("test"));
             Assert.AreEqual(1, subject.NextId("test"));
             Assert.AreEqual(2, subject.NextId("test"));
-            Assert.AreEqual(3, subject.NextId("test"));
+            Assert.AreEqual(250, subject.NextId("test"));
             Assert.AreEqual(251, subject.NextId("test"));
             Assert.AreEqual(252, subject.NextId("test"));
-            Assert.AreEqual(253, subject.NextId("test"));
         }
 
         [Test]
