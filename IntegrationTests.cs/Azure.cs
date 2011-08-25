@@ -110,6 +110,41 @@ namespace IntegrationTests.cs
             }
         }
 
+        [Test]
+        public void ShouldReturnIdsAcrossMultipleGenerators()
+        {
+
+            // Arrange
+            var account = CloudStorageAccount.DevelopmentStorageAccount;
+            using (var testScope = new TestScope(account))
+            {
+                var store1 = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator1 = new UniqueIdGenerator(store1) { BatchSize = 3 };
+                var store2 = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator2 = new UniqueIdGenerator(store2) { BatchSize = 3 };
+
+                // Act
+                var generatedIds = new[]
+                {
+                    generator1.NextId(testScope.IdScopeName), //0
+                    generator1.NextId(testScope.IdScopeName), //1
+                    generator1.NextId(testScope.IdScopeName), //2
+                    generator2.NextId(testScope.IdScopeName), //3
+                    generator1.NextId(testScope.IdScopeName), //6
+                    generator2.NextId(testScope.IdScopeName), //4
+                    generator2.NextId(testScope.IdScopeName), //5
+                    generator2.NextId(testScope.IdScopeName), //9
+                    generator1.NextId(testScope.IdScopeName), //7
+                    generator1.NextId(testScope.IdScopeName)  //8
+                };
+
+                // Assert
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1, 2, 3, 6, 4 , 5, 9, 7, 8 },
+                    generatedIds);
+            }
+        }
+
         public class TestScope : IDisposable
         {
             readonly CloudBlobClient blobClient;
