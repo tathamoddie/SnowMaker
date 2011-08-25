@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using NUnit.Framework;
@@ -113,7 +117,6 @@ namespace IntegrationTests.cs
         [Test]
         public void ShouldReturnIdsAcrossMultipleGenerators()
         {
-
             // Arrange
             var account = CloudStorageAccount.DevelopmentStorageAccount;
             using (var testScope = new TestScope(account))
@@ -142,6 +145,44 @@ namespace IntegrationTests.cs
                 CollectionAssert.AreEqual(
                     new[] { 0, 1, 2, 3, 6, 4 , 5, 9, 7, 8 },
                     generatedIds);
+            }
+        }
+
+        [Test]
+        public void ShouldSupportUsingOneGeneratorFromMultipleThreads()
+        {
+            // Arrange
+            var account = CloudStorageAccount.DevelopmentStorageAccount;
+            using (var testScope = new TestScope(account))
+            {
+                var store = new BlobOptimisticDataStore(account, testScope.ContainerName);
+                var generator = new UniqueIdGenerator(store) { BatchSize = 1000 };
+                const int testLength = 10000;
+
+                // Act
+                var generatedIds = new ConcurrentQueue<long>();
+                var threadIds = new ConcurrentQueue<int>();
+                var scopeName = testScope.IdScopeName;
+                Parallel.For(
+                    0,
+                    testLength,
+                    new ParallelOptions { MaxDegreeOfParallelism = 10 },
+                    i =>
+                    {
+                        generatedIds.Enqueue(generator.NextId(scopeName));
+                        threadIds.Enqueue(Thread.CurrentThread.ManagedThreadId);
+                    });
+
+                // Assert we generated the right count of ids
+                Assert.AreEqual(testLength, generatedIds.Count);
+
+                // Assert there were no duplicates
+                Assert.IsFalse(generatedIds.GroupBy(n => n).Where(g => g.Count() != 1).Any());
+
+                // Assert we used multiple threads
+                var uniqueThreadsUsed = threadIds.Distinct().Count();
+                if (uniqueThreadsUsed == 1)
+                    Assert.Inconclusive("The test failed to actually utilize multiple threads");
             }
         }
 
