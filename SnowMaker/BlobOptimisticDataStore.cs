@@ -8,6 +8,8 @@ namespace SnowMaker
 {
     public class BlobOptimisticDataStore : IOptimisticDataStore
     {
+        const string SeedValue = "0";
+
         readonly CloudBlobContainer blobContainer;
 
         readonly IDictionary<string, CloudBlob> blobReferences;
@@ -72,7 +74,7 @@ namespace SnowMaker
                 try
                 {
                     blobReference.UploadText(
-                        "0",
+                        SeedValue,
                         Encoding.Default,
                         new BlobRequestOptions { AccessCondition = AccessCondition.IfNoneMatch("*") });
                 }
