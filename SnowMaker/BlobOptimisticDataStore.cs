@@ -8,7 +8,7 @@ namespace SnowMaker
 {
     public class BlobOptimisticDataStore : IOptimisticDataStore
     {
-        const string SeedValue = "0";
+        const string SeedValue = "1";
 
         readonly CloudBlobContainer blobContainer;
 

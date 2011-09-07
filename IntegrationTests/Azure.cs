@@ -14,7 +14,7 @@ namespace IntegrationTests.cs
     public class Azure
     {
         [Test]
-        public void ShouldReturnZeroForFirstIdInNewScope()
+        public void ShouldReturnOneForFirstIdInNewScope()
         {
             // Arrange
             var account = CloudStorageAccount.DevelopmentStorageAccount;
@@ -27,7 +27,7 @@ namespace IntegrationTests.cs
                 var generatedId = generator.NextId(testScope.IdScopeName);
 
                 // Assert
-                Assert.AreEqual(0, generatedId);
+                Assert.AreEqual(1, generatedId);
             }
         }
 
@@ -42,10 +42,10 @@ namespace IntegrationTests.cs
                 var generator = new UniqueIdGenerator(store) {BatchSize = 3};
 
                 // Act
-                generator.NextId(testScope.IdScopeName); //0
+                generator.NextId(testScope.IdScopeName); //1
 
                 // Assert
-                Assert.AreEqual("3", testScope.ReadCurrentBlobValue());
+                Assert.AreEqual("4", testScope.ReadCurrentBlobValue());
             }
         }
 
@@ -60,12 +60,12 @@ namespace IntegrationTests.cs
                 var generator = new UniqueIdGenerator(store) { BatchSize = 3 };
 
                 // Act
-                generator.NextId(testScope.IdScopeName); //0
                 generator.NextId(testScope.IdScopeName); //1
                 generator.NextId(testScope.IdScopeName); //2
+                generator.NextId(testScope.IdScopeName); //3
 
                 // Assert
-                Assert.AreEqual("3", testScope.ReadCurrentBlobValue());
+                Assert.AreEqual("4", testScope.ReadCurrentBlobValue());
             }
         }
 
@@ -80,13 +80,13 @@ namespace IntegrationTests.cs
                 var generator = new UniqueIdGenerator(store) { BatchSize = 3 };
 
                 // Act
-                generator.NextId(testScope.IdScopeName); //0
                 generator.NextId(testScope.IdScopeName); //1
                 generator.NextId(testScope.IdScopeName); //2
                 generator.NextId(testScope.IdScopeName); //3
+                generator.NextId(testScope.IdScopeName); //4
 
                 // Assert
-                Assert.AreEqual("6", testScope.ReadCurrentBlobValue());
+                Assert.AreEqual("7", testScope.ReadCurrentBlobValue());
             }
         }
 
@@ -103,14 +103,14 @@ namespace IntegrationTests.cs
                 var generator2 = new UniqueIdGenerator(store2) { BatchSize = 3 };
 
                 // Act
-                generator1.NextId(testScope.IdScopeName); //0
                 generator1.NextId(testScope.IdScopeName); //1
                 generator1.NextId(testScope.IdScopeName); //2
-                generator2.NextId(testScope.IdScopeName); //3
-                var lastId = generator1.NextId(testScope.IdScopeName); //6
+                generator1.NextId(testScope.IdScopeName); //3
+                generator2.NextId(testScope.IdScopeName); //4
+                var lastId = generator1.NextId(testScope.IdScopeName); //7
 
                 // Assert
-                Assert.AreEqual(6, lastId);
+                Assert.AreEqual(7, lastId);
             }
         }
 
@@ -129,21 +129,21 @@ namespace IntegrationTests.cs
                 // Act
                 var generatedIds = new[]
                 {
-                    generator1.NextId(testScope.IdScopeName), //0
                     generator1.NextId(testScope.IdScopeName), //1
                     generator1.NextId(testScope.IdScopeName), //2
-                    generator2.NextId(testScope.IdScopeName), //3
-                    generator1.NextId(testScope.IdScopeName), //6
+                    generator1.NextId(testScope.IdScopeName), //3
                     generator2.NextId(testScope.IdScopeName), //4
-                    generator2.NextId(testScope.IdScopeName), //5
-                    generator2.NextId(testScope.IdScopeName), //9
                     generator1.NextId(testScope.IdScopeName), //7
-                    generator1.NextId(testScope.IdScopeName)  //8
+                    generator2.NextId(testScope.IdScopeName), //5
+                    generator2.NextId(testScope.IdScopeName), //6
+                    generator2.NextId(testScope.IdScopeName), //10
+                    generator1.NextId(testScope.IdScopeName), //8
+                    generator1.NextId(testScope.IdScopeName)  //9
                 };
 
                 // Assert
                 CollectionAssert.AreEqual(
-                    new[] { 0, 1, 2, 3, 6, 4 , 5, 9, 7, 8 },
+                    new[] { 1, 2, 3, 4, 7, 5, 6, 10, 8, 9 },
                     generatedIds);
             }
         }
