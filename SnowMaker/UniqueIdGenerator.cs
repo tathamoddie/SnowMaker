@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.WindowsAzure;
 
 namespace SnowMaker
 {
@@ -14,11 +13,6 @@ namespace SnowMaker
 
         int batchSize = 100;
         int maxWriteAttempts = 25;
-
-        public UniqueIdGenerator(CloudStorageAccount account)
-            : this(new BlobOptimisticDataStore(account, "uniqueids"))
-        {
-        }
 
         public UniqueIdGenerator(IOptimisticDataStore optimisticDataStore)
         {
