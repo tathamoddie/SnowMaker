@@ -177,7 +177,7 @@ namespace IntegrationTests.cs
                 Assert.AreEqual(testLength, generatedIds.Count);
 
                 // Assert there were no duplicates
-                Assert.IsFalse(generatedIds.GroupBy(n => n).Where(g => g.Count() != 1).Any());
+                Assert.IsFalse(generatedIds.GroupBy(n => n).Any(g => g.Count() != 1));
 
                 // Assert we used multiple threads
                 var uniqueThreadsUsed = threadIds.Distinct().Count();
