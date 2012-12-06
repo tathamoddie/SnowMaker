@@ -1,0 +1,19 @@
+# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
+bin
+obj
+
+# mstest test results
+TestResults
+
+#Tooling
+_ReSharper*/
+*.resharper
+[Tt]est[Rr]esult*
+
+*.user
+*.suo
+
+# Ignore everything that has to do with the Store
+AppPackages/
+AirQualityInfo_StoreKey.pfx
+Package.StoreAssociation.xml

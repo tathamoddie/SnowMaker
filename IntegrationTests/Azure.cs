@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NUnit.Framework;
 using SnowMaker;
 
@@ -205,7 +206,7 @@ namespace IntegrationTests.cs
             public string ReadCurrentBlobValue()
             {
                 var blobContainer = blobClient.GetContainerReference(ContainerName);
-                var blob = blobContainer.GetBlobReference(IdScopeName);
+                var blob = blobContainer.GetBlockBlobReference(IdScopeName);
                 return blob.DownloadText();
             }
 
