@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.WindowsAzure;
+using Microsoft.WindowsAzure.Storage;
 
 namespace SnowMaker
 {

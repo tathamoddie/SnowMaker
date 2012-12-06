@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>System.Spatial</id>
+    <version>5.0.2</version>
+    <title>System.Spatial</title>
+    <authors>Microsoft Corporation</authors>
+    <owners>Microsoft Corporation</owners>
+    <licenseUrl>http://go.microsoft.com/?linkid=9809688</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=220868</projectUrl>
+    <iconUrl>http://static.tumblr.com/hgchgxz/9ualgdf98/icon.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Contains a number of classes and canonical methods that facilitate geography and geometry spatial operations. Targets .NET 4.0 or Silverlight 4.0. Localized for CHS, CHT, DEU, ESN, FRA, ITA, JPN, KOR and RUS.</description>
+    <releaseNotes>• Fixes NuGet packages to have explicit version dependencies
+• Fixes a bug where WCF Data Services client binaries did not work correctly on Silverlight hosted in Chrome
+• Fixes a bug where WCF Data Services client did not send the correct DataServiceVersion header when following a nextlink 
+• Allows "True" and "False" to be recognized boolean values in ATOM (note that this is more relaxed than the OData spec, but there were known cases where servers were serializing "True" and "False")
+• Fixes a bug where EdmLib would fail validation for attribute names that are not SimpleIdentifiers
+• Fixes a bug where nullable action parameters were still required to be in the payload
+• Fixes a bug where the FeedAtomMetadata annotation wasn't being attached to the feed even when EnableAtomMetadataReading was set to true
+• Fixes a bug where projections involving more than eight columns would fail if the EF Oracle provider was being used
+• Fixes a bug where a DateTimeOffset could not be materialized from a v2 JSON Verbose value
+• Fixes a race condition in the WCF Data Services server bits when using reflection to get property values
+• Fixes an error message that wasn't getting localized correctly
+• Fixes a bug where the message quotas set in the client and server were not being propagated to ODataLib</releaseNotes>
+    <tags>wcf data services odata odatalib edmlib spatial ado.net ef entity framework open protocol wcfds wcfdataservices dataservices</tags>
+  </metadata>
+</package>

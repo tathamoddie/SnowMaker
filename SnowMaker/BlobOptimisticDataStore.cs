@@ -2,7 +2,8 @@
 using System.Net;
 using System.Text;
 using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace SnowMaker
 {
@@ -12,16 +13,16 @@ namespace SnowMaker
 
         readonly CloudBlobContainer blobContainer;
 
-        readonly IDictionary<string, CloudBlob> blobReferences;
+        readonly IDictionary<string, CloudBlockBlob> blobReferences;
         readonly object blobReferencesLock = new object();
 
         public BlobOptimisticDataStore(CloudStorageAccount account, string containerName)
         {
             var blobClient = account.CreateCloudBlobClient();
             blobContainer = blobClient.GetContainerReference(containerName.ToLower());
-            blobContainer.CreateIfNotExist();
+            blobContainer.CreateIfNotExists();
 
-            blobReferences = new Dictionary<string, CloudBlob>();
+            blobReferences = new Dictionary<string, CloudBlockBlob>();
         }
 
         public string GetData(string blockName)
@@ -35,14 +36,11 @@ namespace SnowMaker
             var blobReference = GetBlobReference(scopeName);
             try
             {
-                blobReference.UploadText(
-                    data,
-                    Encoding.Default,
-                    new BlobRequestOptions { AccessCondition = AccessCondition.IfMatch(blobReference.Properties.ETag) });
+                blobReference.UploadText(data, AccessCondition.GenerateIfMatchCondition(blobReference.Properties.ETag));
             }
-            catch (StorageClientException exc)
+            catch (StorageException exc)
             {
-                if (exc.StatusCode == HttpStatusCode.PreconditionFailed)
+                if (exc.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
                     return false;
 
                 throw;
@@ -50,7 +48,7 @@ namespace SnowMaker
             return true;
         }
 
-        CloudBlob GetBlobReference(string blockName)
+        CloudBlockBlob GetBlobReference(string blockName)
         {
             return blobReferences.GetValue(
                 blockName,
@@ -58,29 +56,26 @@ namespace SnowMaker
                 () => InitializeBlobReference(blockName));
         }
 
-        private CloudBlob InitializeBlobReference(string blockName)
+        private CloudBlockBlob InitializeBlobReference(string blockName)
         {
-            var blobReference = blobContainer.GetBlobReference(blockName);
+            var blobReference = blobContainer.GetBlockBlobReference(blockName);
 
             try
             {
                 blobReference.DownloadText();
             }
-            catch (StorageClientException downloadException)
+            catch (StorageException downloadException)
             {
-                if (downloadException.StatusCode != HttpStatusCode.NotFound)
+                if (downloadException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.NotFound)
                     throw;
 
                 try
                 {
-                    blobReference.UploadText(
-                        SeedValue,
-                        Encoding.Default,
-                        new BlobRequestOptions { AccessCondition = AccessCondition.IfNoneMatch("*") });
+                    blobReference.UploadText(SeedValue, AccessCondition.GenerateIfNoneMatchCondition("*"));
                 }
-                catch (StorageClientException uploadException)
+                catch (StorageException uploadException)
                 {
-                    if (uploadException.StatusCode != HttpStatusCode.Conflict)
+                    if (uploadException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
                         throw;
                 }
             }
