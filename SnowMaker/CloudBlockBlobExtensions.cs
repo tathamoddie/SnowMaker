@@ -24,11 +24,17 @@ namespace SnowMaker
             }
         }
 
+        /// <summary>
+        /// DO NOT USE THIS METHOD OUTSIDE SNOWMAKER!
+        /// It does read only 1K of bytes, nothing more
+        /// </summary>
+        /// <param name="blockBlob"></param>
+        /// <returns></returns>
         public static string DownloadText(this CloudBlockBlob blockBlob)
         {
             using (var stream = blockBlob.OpenRead())
             {
-                var buffer = new byte[256];
+                var buffer = new byte[1024];
                 int read = stream.Read(buffer, 0, buffer.Length);
                 stream.Close();
 
