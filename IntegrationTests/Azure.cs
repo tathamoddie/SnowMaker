@@ -1,8 +1,11 @@
 ﻿using System;
 using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NUnit.Framework;
 using SnowMaker;
+using System.Text;
+using System.IO;
 
 namespace IntegrationTests.cs
 {
@@ -40,8 +43,12 @@ namespace IntegrationTests.cs
             public string ReadCurrentPersistedValue()
             {
                 var blobContainer = blobClient.GetContainerReference(ContainerName);
-                var blob = blobContainer.GetBlobReference(IdScopeName);
-                return blob.DownloadText();
+                var blob = blobContainer.GetBlockBlobReference(IdScopeName);
+                using (var stream = new MemoryStream())
+                {
+                    blob.DownloadToStream(stream);
+                    return Encoding.UTF8.GetString(stream.ToArray());
+                }
             }
 
             public void Dispose()

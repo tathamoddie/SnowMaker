@@ -2,7 +2,9 @@
 using System.Net;
 using System.Text;
 using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System.IO;
 
 namespace SnowMaker
 {
@@ -12,22 +14,26 @@ namespace SnowMaker
 
         readonly CloudBlobContainer blobContainer;
 
-        readonly IDictionary<string, CloudBlob> blobReferences;
+        readonly IDictionary<string, ICloudBlob> blobReferences;
         readonly object blobReferencesLock = new object();
 
         public BlobOptimisticDataStore(CloudStorageAccount account, string containerName)
         {
             var blobClient = account.CreateCloudBlobClient();
             blobContainer = blobClient.GetContainerReference(containerName.ToLower());
-            blobContainer.CreateIfNotExist();
+            blobContainer.CreateIfNotExists();
 
-            blobReferences = new Dictionary<string, CloudBlob>();
+            blobReferences = new Dictionary<string, ICloudBlob>();
         }
 
         public string GetData(string blockName)
         {
             var blobReference = GetBlobReference(blockName);
-            return blobReference.DownloadText();
+            using (var stream = new MemoryStream())
+            {
+                blobReference.DownloadToStream(stream);
+                return Encoding.UTF8.GetString(stream.ToArray());
+            }
         }
 
         public bool TryOptimisticWrite(string scopeName, string data)
@@ -35,14 +41,14 @@ namespace SnowMaker
             var blobReference = GetBlobReference(scopeName);
             try
             {
-                blobReference.UploadText(
+                UploadText(
+                    blobReference,
                     data,
-                    Encoding.Default,
-                    new BlobRequestOptions { AccessCondition = AccessCondition.IfMatch(blobReference.Properties.ETag) });
+                    AccessCondition.GenerateIfMatchCondition(blobReference.Properties.ETag));
             }
-            catch (StorageClientException exc)
+            catch (StorageException exc)
             {
-                if (exc.StatusCode == HttpStatusCode.PreconditionFailed)
+                if (exc.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
                     return false;
 
                 throw;
@@ -50,7 +56,7 @@ namespace SnowMaker
             return true;
         }
 
-        CloudBlob GetBlobReference(string blockName)
+        ICloudBlob GetBlobReference(string blockName)
         {
             return blobReferences.GetValue(
                 blockName,
@@ -58,34 +64,34 @@ namespace SnowMaker
                 () => InitializeBlobReference(blockName));
         }
 
-        private CloudBlob InitializeBlobReference(string blockName)
+        private ICloudBlob InitializeBlobReference(string blockName)
         {
-            var blobReference = blobContainer.GetBlobReference(blockName);
+            var blobReference = blobContainer.GetBlockBlobReference(blockName);
+
+            if (blobReference.Exists())
+                return blobReference;
 
             try
             {
-                blobReference.DownloadText();
+                UploadText(blobReference, SeedValue, AccessCondition.GenerateIfNoneMatchCondition("*"));
             }
-            catch (StorageClientException downloadException)
+            catch (StorageException uploadException)
             {
-                if (downloadException.StatusCode != HttpStatusCode.NotFound)
+                if (uploadException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
                     throw;
-
-                try
-                {
-                    blobReference.UploadText(
-                        SeedValue,
-                        Encoding.Default,
-                        new BlobRequestOptions { AccessCondition = AccessCondition.IfNoneMatch("*") });
-                }
-                catch (StorageClientException uploadException)
-                {
-                    if (uploadException.StatusCode != HttpStatusCode.Conflict)
-                        throw;
-                }
             }
 
             return blobReference;
+        }
+
+        void UploadText(ICloudBlob blob, string text, AccessCondition accessCondition)
+        {
+            blob.Properties.ContentEncoding = "UTF-8";
+            blob.Properties.ContentType = "text/plain";
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
+            {
+                blob.UploadFromStream(stream, accessCondition);
+            }
         }
     }
 }
