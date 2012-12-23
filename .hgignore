@@ -5,3 +5,4 @@ _ReSharper*
 .user
 SnowMaker.*.nupkg
 packages/*
+.crunchsolution.cache
