@@ -15,7 +15,7 @@ namespace IntegrationTests.cs
 
         protected override IOptimisticDataStore BuildStore(TestScope scope)
         {
-            return new FileOptimisticDataStore(scope.DirectoryPath);
+            return new DebugOnlyFileDataStore(scope.DirectoryPath);
         }
 
         public class TestScope : ITestScope
