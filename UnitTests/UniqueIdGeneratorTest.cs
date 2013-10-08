@@ -11,6 +11,7 @@ namespace SnowMaker.UnitTests
         public void ConstructorShouldNotRetrieveDataFromStore()
         {
             var store = Substitute.For<IOptimisticDataStore>();
+            // ReSharper disable once ObjectCreationAsStatement
             new UniqueIdGenerator(store);
             store.DidNotReceiveWithAnyArgs().GetData(null);
         }
@@ -20,6 +21,7 @@ namespace SnowMaker.UnitTests
         public void MaxWriteAttemptsShouldThrowArgumentOutOfRangeExceptionWhenValueIsZero()
         {
             var store = Substitute.For<IOptimisticDataStore>();
+            // ReSharper disable once ObjectCreationAsStatement
             new UniqueIdGenerator(store)
             {
                 MaxWriteAttempts = 0
@@ -31,6 +33,7 @@ namespace SnowMaker.UnitTests
         public void MaxWriteAttemptsShouldThrowArgumentOutOfRangeExceptionWhenValueIsNegative()
         {
             var store = Substitute.For<IOptimisticDataStore>();
+            // ReSharper disable once ObjectCreationAsStatement
             new UniqueIdGenerator(store)
             {
                 MaxWriteAttempts = -1
