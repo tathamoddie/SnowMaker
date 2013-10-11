@@ -78,7 +78,7 @@ namespace SnowMaker
                 state.HighestIdAvailableInBatch = nextId - 1 + batchSize;
                 var firstIdInNextBatch = state.HighestIdAvailableInBatch + 1;
 
-                if (optimisticDataStore.TryOptimisticWrite(scopeName, firstIdInNextBatch.ToString(CultureInfo.InvariantCulture)))
+                if (optimisticDataStore.TryOptimisticWrite(scopeName, firstIdInNextBatch.ToString(CultureInfo.InvariantCulture), data))
                     return;
 
                 writesAttempted++;

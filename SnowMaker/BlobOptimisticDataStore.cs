@@ -35,7 +35,7 @@ namespace SnowMaker
             }
         }
 
-        public bool TryOptimisticWrite(string scopeName, string data)
+        public bool TryOptimisticWrite(string scopeName, string data, string originalData = null)
         {
             var blobReference = GetBlobReference(scopeName);
             try

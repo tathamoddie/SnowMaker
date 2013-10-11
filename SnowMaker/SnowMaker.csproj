@@ -65,7 +65,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="DebugOnlyFileDataStore.cs" />
+    <Compile Include="FileOptimisticDataStore.cs" />
     <Compile Include="IOptimisticDataStore.cs">
       <SubType>Code</SubType>
     </Compile>

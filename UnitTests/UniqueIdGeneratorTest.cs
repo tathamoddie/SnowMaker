@@ -69,7 +69,7 @@ namespace SnowMaker.UnitTests
         {
             var store = Substitute.For<IOptimisticDataStore>();
             store.GetData("test").Returns("0", "250");
-            store.TryOptimisticWrite("test", "3").Returns(true);
+            store.TryOptimisticWrite("test", "3", "0").Returns(true);
 
             var subject = new UniqueIdGenerator(store)
             {
@@ -86,8 +86,8 @@ namespace SnowMaker.UnitTests
         {
             var store = Substitute.For<IOptimisticDataStore>();
             store.GetData("test").Returns("0", "250");
-            store.TryOptimisticWrite("test", "3").Returns(true);
-            store.TryOptimisticWrite("test", "253").Returns(true);
+            store.TryOptimisticWrite("test", "3", "0").Returns(true);
+            store.TryOptimisticWrite("test", "253", "250").Returns(true);
 
             var subject = new UniqueIdGenerator(store)
             {
@@ -107,7 +107,7 @@ namespace SnowMaker.UnitTests
         {
             var store = Substitute.For<IOptimisticDataStore>();
             store.GetData("test").Returns("0");
-            store.TryOptimisticWrite("test", "3").Returns(false, false, false, true);
+            store.TryOptimisticWrite("test", "3", "0").Returns(false, false, false, true);
 
             var generator = new UniqueIdGenerator(store)
             {
