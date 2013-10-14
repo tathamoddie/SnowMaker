@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
+using System;
 
 namespace SnowMaker
 {
@@ -24,35 +25,37 @@ namespace SnowMaker
 
             blobReferences = new Dictionary<string, ICloudBlob>();
         }
-
-        public string GetData(string blockName)
+        
+        public long GetNextBatch(string blockName, int batchSize)
         {
+            if (batchSize <= 0)
+                throw new ArgumentOutOfRangeException("batchSize");
+
+            long id;
             var blobReference = GetBlobReference(blockName);
             using (var stream = new MemoryStream())
             {
                 blobReference.DownloadToStream(stream);
-                return Encoding.UTF8.GetString(stream.ToArray());
+                if (!Int64.TryParse(Encoding.UTF8.GetString(stream.ToArray()), out id))
+                    throw new Exception(String.Format("The id seed returned from the blob for blockName '{0}' was corrupt, and could not be parsed as a long. The data returned was: {1}", blockName, Encoding.UTF8.GetString(stream.ToArray())));
+                if (id <= 0)
+                    throw new Exception(String.Format("The id seed returned from the blob for blockName '{0}' was {1}", blockName, id));
             }
-        }
 
-        public bool TryOptimisticWrite(string scopeName, string data, string originalData = null)
-        {
-            var blobReference = GetBlobReference(scopeName);
             try
             {
                 UploadText(
                     blobReference,
-                    data,
+                    (id + batchSize).ToString(),
                     AccessCondition.GenerateIfMatchCondition(blobReference.Properties.ETag));
             }
             catch (StorageException exc)
             {
                 if (exc.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
-                    return false;
-
-                throw;
+                    return -1;
             }
-            return true;
+
+            return id;
         }
 
         ICloudBlob GetBlobReference(string blockName)

@@ -20,10 +20,10 @@ namespace SnowMaker.UnitTests
             }
 
             // does not lock the file
-            public string ReadCurrentPersistedValue()
+            public long ReadCurrentPersistedValue()
             {
                 using (TextReader reader = new StreamReader(FilePath, FileOptimisticDataStore.Encoding))
-                    return reader.ReadToEnd();
+                    return Convert.ToInt64(reader.ReadToEnd());
             }
 
             public void Dispose()
@@ -47,10 +47,13 @@ namespace SnowMaker.UnitTests
             }
         }
 
+        private const string scope = "test";
+        private const int batch = 1;
+
         [Test]
         public void ConstructorShouldNotCreateFile()
         {
-            using (var testScope = new TestScope("test"))
+            using (var testScope = new TestScope(scope))
             {
                 var store = new FileOptimisticDataStore(Path.GetTempPath());
                 Assert.IsFalse(File.Exists(testScope.FilePath));
@@ -58,47 +61,21 @@ namespace SnowMaker.UnitTests
         }
 
         [Test]
-        public void ShouldCreateFileOnFirstRead()
+        public void ShouldCreateFileOnFirstAccess()
         {
-            using (var testScope = new TestScope("test"))
+            using (var testScope = new TestScope(scope))
             {
                 var store = new FileOptimisticDataStore(Path.GetTempPath());
-                store.GetData("test");
+                store.GetNextBatch(scope, batch);
                 Assert.IsTrue(File.Exists(testScope.FilePath));
-                Assert.AreEqual(testScope.ReadCurrentPersistedValue(), FileOptimisticDataStore.SeedValue);
+                Assert.AreEqual(testScope.ReadCurrentPersistedValue(), FileOptimisticDataStore.SeedValue + batch);
             }
         }
 
         [Test]
-        public void ShouldNotAlterFileOnSecondRead()
+        public void GetNextBatchShouldBlockFileAccess()
         {
-            using (var testScope = new TestScope("test"))
-            {
-                var store = new FileOptimisticDataStore(Path.GetTempPath());
-                store.GetData("test");
-                DateTime lastWriteTime = File.GetLastWriteTime(testScope.FilePath);
-                store.GetData("test");
-                Assert.AreEqual(lastWriteTime, File.GetLastWriteTime(testScope.FilePath));
-            }
-        }
-
-        [Test]
-        public void GetDataShouldNotBlockFileAccess()
-        {
-            using (var testScope = new TestScope("test"))
-            {
-                var store = new FileOptimisticDataStore(Path.GetTempPath());
-                string data = store.GetData("test");
-
-                using (FileStream stream = File.Open(testScope.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    Assert.AreEqual(data, store.GetData("test"));
-            }
-        }
-
-        [Test]
-        public void TryOptimisticWriteShouldBlockFileAccess()
-        {
-            using (var testScope = new TestScope("test"))
+            using (var testScope = new TestScope(scope))
             {
                 CancellationTokenSource cancelTokenSource1 = new CancellationTokenSource();
                 CancellationTokenSource cancelTokenSource2 = new CancellationTokenSource();
@@ -106,13 +83,13 @@ namespace SnowMaker.UnitTests
                 try
                 {
                     var store = new FileOptimisticDataStore(Path.GetTempPath());
-                    store.GetData("test"); // create the file
+                    store.GetNextBatch(scope, batch); // create the file
 
                     CancellationToken cancelToken1 = cancelTokenSource1.Token;
                     Task task1 = Task.Factory.StartNew(() =>
                     {
                         do
-                            store.TryOptimisticWrite("test", FileOptimisticDataStore.SeedValue, FileOptimisticDataStore.SeedValue);
+                            store.GetNextBatch(scope, batch);
                         while (!cancelToken1.IsCancellationRequested);
                     }, cancelToken1);
 
@@ -155,28 +132,14 @@ namespace SnowMaker.UnitTests
         }
 
         [Test]
-        public void ShouldNotUpdateFileWhenContentsWereAltered()
+        public void GetNextBatchShouldReturnMinusOneWhenBlocked()
         {
-            using (var testScope = new TestScope("test"))
+            using (var testScope = new TestScope(scope))
             {
                 var store = new FileOptimisticDataStore(Path.GetTempPath());
-                store.GetData("test");
-                Assert.IsFalse(store.TryOptimisticWrite("test", "5", "x"));
-            }
-        }
-
-        [Test]
-        public void TryOptimisticWriteShouldReturnFalseWhenBlocked()
-        {
-            using (var testScope = new TestScope("test"))
-            {
-                var store = new FileOptimisticDataStore(Path.GetTempPath());
-                store.GetData("test");
-
-                using (FileStream stream = File.Open(testScope.FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                {
-                    Assert.IsFalse(store.TryOptimisticWrite("test", FileOptimisticDataStore.SeedValue, FileOptimisticDataStore.SeedValue));
-                }
+                store.GetNextBatch(scope, batch);
+                using (FileStream stream = File.Open(testScope.FilePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                    Assert.AreEqual(-1, store.GetNextBatch(scope, batch));
             }
         }
     }

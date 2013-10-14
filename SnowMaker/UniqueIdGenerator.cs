@@ -65,22 +65,13 @@ namespace SnowMaker
 
             while (writesAttempted < maxWriteAttempts)
             {
-                var data = optimisticDataStore.GetData(scopeName);
-
-                long nextId;
-                if (!long.TryParse(data, out nextId))
-                    throw new UniqueIdGenerationException(string.Format(
-                       "The id seed returned from storage for scope '{0}' was corrupt, and could not be parsed as a long. The data returned was: {1}",
-                       scopeName,
-                       data));
-
-                state.LastId = nextId - 1;
-                state.HighestIdAvailableInBatch = nextId - 1 + batchSize;
-                var firstIdInNextBatch = state.HighestIdAvailableInBatch + 1;
-
-                if (optimisticDataStore.TryOptimisticWrite(scopeName, firstIdInNextBatch.ToString(CultureInfo.InvariantCulture), data))
+                long id = optimisticDataStore.GetNextBatch(scopeName, batchSize);
+                if (id != -1)
+                {
+                    state.LastId = id - 1;
+                    state.HighestIdAvailableInBatch = id - 1 + batchSize;
                     return;
-
+                }
                 writesAttempted++;
             }
 
