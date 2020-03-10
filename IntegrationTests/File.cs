@@ -3,7 +3,7 @@ using System.IO;
 using NUnit.Framework;
 using SnowMaker;
 
-namespace IntegrationTests.cs
+namespace IntegrationTests
 {
     [TestFixture]
     public class File : Scenarios<File.TestScope>
