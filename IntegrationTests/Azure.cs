@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NUnit.Framework;
 using SnowMaker;
 using System.Text;
 using System.IO;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
-namespace IntegrationTests.cs
+namespace IntegrationTests
 {
     [TestFixture]
     public class Azure : Scenarios<Azure.TestScope>

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using SnowMaker;
 
-namespace IntegrationTests.cs
+namespace IntegrationTests
 {
     public abstract class Scenarios<TTestScope> where TTestScope : ITestScope
     {
