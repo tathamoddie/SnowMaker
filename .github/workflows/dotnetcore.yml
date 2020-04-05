@@ -10,9 +10,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet: [ '2.1.300', '3.1.101' ]
 
     steps:
     - uses: actions/checkout@v2
@@ -21,10 +18,10 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ matrix.dotnet }}
+        dotnet-version: 3.1.101
     - name: Install dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test
-      run: dotnet test UnitTests/UnitTests.csproj --no-restore --verbosity normal
+      run: dotnet test UnitTests/UnitTests.csproj --framework netcoreapp3.1 --no-restore --verbosity normal
