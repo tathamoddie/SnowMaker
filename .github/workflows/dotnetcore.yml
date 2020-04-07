@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -29,12 +29,12 @@ jobs:
       with:
         dotnet-version: 3.1.201
 
-    # - name: Setup side by side .NET SDKs on Windows
-    #   if: matrix.os == 'windows-latest'
-    #   run: |
-    #     SET DOTNET_21_ROOT=%DOTNET_ROOT:3.1.201=2.1.805%
-    #     xcopy /s /y /d %DOTNET_31_ROOT% %DOTNET_ROOT%
-    #   shell: cmd
+    - name: Setup side by side .NET SDKs on Windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        SET DOTNET_21_ROOT=%DOTNET_ROOT:3.1.201=2.1.805%
+        xcopy /s /y /d %DOTNET_31_ROOT% %DOTNET_ROOT%
+      shell: cmd
 
     #workaround https://github.com/actions/setup-dotnet/issues/25
     - name: Setup side by side .NET SDKs
