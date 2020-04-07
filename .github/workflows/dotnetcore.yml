@@ -40,7 +40,7 @@ jobs:
     - name: Setup side by side .NET SDKs
       if: matrix.os != 'windows-latest'
       run: |
-      run: rsync -a ${DOTNET_ROOT/3.1.201/2.1.805}/* $DOTNET_ROOT/
+        rsync -a ${DOTNET_ROOT/3.1.201/2.1.805}/* $DOTNET_ROOT/
 
     - name: Install dependencies
       run: dotnet restore
