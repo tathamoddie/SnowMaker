@@ -2,8 +2,9 @@
 using System.Net;
 using System.Text;
 using System.IO;
-using Microsoft.Azure.Storage.Blob;
-using Microsoft.Azure.Storage;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace SnowMaker
 {
@@ -11,18 +12,17 @@ namespace SnowMaker
     {
         const string SeedValue = "1";
 
-        readonly CloudBlobContainer blobContainer;
+        readonly BlobContainerClient blobContainer;
 
-        readonly IDictionary<string, ICloudBlob> blobReferences;
+        readonly IDictionary<string, BlobClient> blobReferences;
         readonly object blobReferencesLock = new object();
 
-        public BlobOptimisticDataStore(CloudStorageAccount account, string containerName)
+        public BlobOptimisticDataStore(string storageConnectionString, string containerName)
         {
-            var blobClient = account.CreateCloudBlobClient();
-            blobContainer = blobClient.GetContainerReference(containerName.ToLower());
+            blobContainer = new BlobContainerClient(storageConnectionString, containerName);
             blobContainer.CreateIfNotExists();
 
-            blobReferences = new Dictionary<string, ICloudBlob>();
+            blobReferences = new Dictionary<string, BlobClient>();
         }
 
         public string GetData(string blockName)
@@ -30,7 +30,7 @@ namespace SnowMaker
             var blobReference = GetBlobReference(blockName);
             using (var stream = new MemoryStream())
             {
-                blobReference.DownloadToStream(stream);
+                blobReference.DownloadTo(stream);
                 return Encoding.UTF8.GetString(stream.ToArray());
             }
         }
@@ -40,14 +40,16 @@ namespace SnowMaker
             var blobReference = GetBlobReference(scopeName);
             try
             {
-                UploadText(
-                    blobReference,
-                    data,
-                    AccessCondition.GenerateIfMatchCondition(blobReference.Properties.ETag));
+                var conditions = new BlobRequestConditions
+                {
+                    IfMatch = blobReference.GetProperties().Value.ETag
+                };
+
+                UploadText(blobReference, data, conditions);
             }
-            catch (StorageException exc)
+            catch (RequestFailedException exc)
             {
-                if (exc.RequestInformation.HttpStatusCode == (int)HttpStatusCode.PreconditionFailed)
+                if (exc.Status == (int)HttpStatusCode.PreconditionFailed)
                     return false;
 
                 throw;
@@ -55,7 +57,7 @@ namespace SnowMaker
             return true;
         }
 
-        ICloudBlob GetBlobReference(string blockName)
+        BlobClient GetBlobReference(string blockName)
         {
             return blobReferences.GetValue(
                 blockName,
@@ -63,33 +65,63 @@ namespace SnowMaker
                 () => InitializeBlobReference(blockName));
         }
 
-        private ICloudBlob InitializeBlobReference(string blockName)
+        private BlobClient InitializeBlobReference(string blockName)
         {
-            var blobReference = blobContainer.GetBlockBlobReference(blockName);
+            var blobReference = blobContainer.GetBlobClient(blockName);
 
             if (blobReference.Exists())
                 return blobReference;
 
             try
             {
-                UploadText(blobReference, SeedValue, AccessCondition.GenerateIfNoneMatchCondition("*"));
+                var conditions = new BlobRequestConditions
+                {
+                    IfNoneMatch = ETag.All
+                };
+
+                UploadText(blobReference, SeedValue, conditions);
             }
-            catch (StorageException uploadException)
+            catch (RequestFailedException uploadException)
             {
-                if (uploadException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
+                if (uploadException.Status != (int)HttpStatusCode.Conflict)
                     throw;
             }
 
             return blobReference;
         }
 
-        void UploadText(ICloudBlob blob, string text, AccessCondition accessCondition)
+        void UploadText(BlobClient blob, string text, BlobRequestConditions conditions)
         {
-            blob.Properties.ContentEncoding = "UTF-8";
-            blob.Properties.ContentType = "text/plain";
+            //var properties = blob.GetProperties();
+
+            var headers = new BlobHttpHeaders
+            {
+                // Set the MIME ContentType every time the properties 
+                // are updated or the field will be cleared
+                ContentType = "text/plain",
+                ContentLanguage = "en-us",
+
+                // Populate remaining headers with 
+                // the pre-existing properties
+                //CacheControl = properties.Value.CacheControl,
+                //ContentDisposition = properties.Value.ContentDisposition,
+                ContentEncoding = "UTF-8", // properties.Value.ContentEncoding,
+                //ContentHash = properties.Value.ContentHash
+            };
+
+            // Set the blob's properties.
+            //blob.SetHttpHeaders(headers);
+
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
             {
-                blob.UploadFromStream(stream, accessCondition);
+                // Set the If-Match condition to the original ETag.
+                var options = new BlobUploadOptions()
+                {
+                    Conditions = conditions,
+                    HttpHeaders = headers,
+                };
+
+                blob.Upload(stream, options);
             }
         }
     }

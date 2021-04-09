@@ -8,8 +8,9 @@
     <IsPackable>false</IsPackable>
     <IsTestable>true</IsTestable>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.1.2" />
+    <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="NSubstitute" Version="4.2.1" />
     <PackageReference Include="NUnit" Version="3.12.0" />
