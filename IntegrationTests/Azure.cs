@@ -3,37 +3,34 @@ using NUnit.Framework;
 using SnowMaker;
 using System.Text;
 using System.IO;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 
 namespace IntegrationTests
 {
     [TestFixture]
     public class Azure : Scenarios<Azure.TestScope>
     {
-        readonly CloudStorageAccount storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-
         protected override TestScope BuildTestScope()
         {
-            return new TestScope(CloudStorageAccount.DevelopmentStorageAccount);
+            return new TestScope("UseDevelopmentStorage=true");
         }
 
         protected override IOptimisticDataStore BuildStore(TestScope scope)
         {
-            return new BlobOptimisticDataStore(storageAccount, scope.ContainerName);
+            return new BlobOptimisticDataStore("UseDevelopmentStorage=true", scope.ContainerName);
         }
 
         public class TestScope : ITestScope
         {
-            readonly CloudBlobClient blobClient;
+            readonly BlobContainerClient blobContainerClient;
 
-            public TestScope(CloudStorageAccount account)
+            public TestScope(string storageConnectionString)
             {
                 var ticks = DateTime.UtcNow.Ticks;
                 IdScopeName = string.Format("snowmakertest{0}", ticks);
                 ContainerName = string.Format("snowmakertest{0}", ticks);
 
-                blobClient = account.CreateCloudBlobClient();
+                blobContainerClient = new BlobContainerClient(storageConnectionString, ContainerName);
             }
 
             public string IdScopeName { get; private set; }
@@ -41,19 +38,17 @@ namespace IntegrationTests
 
             public string ReadCurrentPersistedValue()
             {
-                var blobContainer = blobClient.GetContainerReference(ContainerName);
-                var blob = blobContainer.GetBlockBlobReference(IdScopeName);
+                var blob = blobContainerClient.GetBlobClient(IdScopeName);
                 using (var stream = new MemoryStream())
                 {
-                    blob.DownloadToStream(stream);
+                    blob.DownloadTo(stream);
                     return Encoding.UTF8.GetString(stream.ToArray());
                 }
             }
 
             public void Dispose()
             {
-                var blobContainer = blobClient.GetContainerReference(ContainerName);
-                blobContainer.Delete();
+                blobContainerClient.Delete();
             }
         }
     }
