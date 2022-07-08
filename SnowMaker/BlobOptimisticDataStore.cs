@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.IO;
-using Azure;
+﻿using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text;
 
 namespace SnowMaker
 {
@@ -17,9 +17,9 @@ namespace SnowMaker
         readonly IDictionary<string, BlobClient> blobReferences;
         readonly object blobReferencesLock = new object();
 
-        public BlobOptimisticDataStore(string storageConnectionString, string containerName)
+        public BlobOptimisticDataStore(string storageConnectionString, string containerName, BlobClientOptions options = default)
         {
-            blobContainer = new BlobContainerClient(storageConnectionString, containerName);
+            blobContainer = new BlobContainerClient(storageConnectionString, containerName, options);
             blobContainer.CreateIfNotExists();
 
             blobReferences = new Dictionary<string, BlobClient>();

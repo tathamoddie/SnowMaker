@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Azure.Storage.Blobs;
 using NUnit.Framework;
 using SnowMaker;
-using System.Text;
+using System;
+using System.Diagnostics;
 using System.IO;
-using Azure.Storage.Blobs;
+using System.Text;
 
 namespace IntegrationTests
 {
@@ -17,7 +18,7 @@ namespace IntegrationTests
 
         protected override IOptimisticDataStore BuildStore(TestScope scope)
         {
-            return new BlobOptimisticDataStore("UseDevelopmentStorage=true", scope.ContainerName);
+            return new BlobOptimisticDataStore("UseDevelopmentStorage=true", scope.ContainerName, scope.Options);
         }
 
         public class TestScope : ITestScope
@@ -30,11 +31,12 @@ namespace IntegrationTests
                 IdScopeName = string.Format("snowmakertest{0}", ticks);
                 ContainerName = string.Format("snowmakertest{0}", ticks);
 
-                blobContainerClient = new BlobContainerClient(storageConnectionString, ContainerName);
+                blobContainerClient = new BlobContainerClient(storageConnectionString, ContainerName, Options);
             }
 
             public string IdScopeName { get; private set; }
             public string ContainerName { get; private set; }
+            internal readonly BlobClientOptions Options = default;// new BlobClientOptions(BlobClientOptions.ServiceVersion.V2020_12_06);
 
             public string ReadCurrentPersistedValue()
             {
@@ -48,7 +50,14 @@ namespace IntegrationTests
 
             public void Dispose()
             {
-                blobContainerClient.Delete();
+                try
+                {
+                    blobContainerClient.Delete();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
         }
     }
