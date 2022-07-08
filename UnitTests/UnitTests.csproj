@@ -1,23 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOsUnixLike())">$(TargetFrameworks);net472</TargetFrameworks>
-    <Description>The unit tests for our pre-built mocks</Description>
-    <AssemblyName>SnowMaker.UnitTests</AssemblyName>
-    <RootNamespace>SnowMaker.UnitTests</RootNamespace>
-    <IsPackable>false</IsPackable>
-    <IsTestable>true</IsTestable>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="NSubstitute" Version="4.2.1" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SnowMaker\SnowMaker.csproj" />
-  </ItemGroup>
+
+	<PropertyGroup>
+		<TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks Condition="!$([MSBuild]::IsOsUnixLike())">$(TargetFrameworks);net472</TargetFrameworks>
+		<Description>The unit tests for our pre-built mocks</Description>
+		<AssemblyName>SnowMaker.UnitTests</AssemblyName>
+		<RootNamespace>SnowMaker.UnitTests</RootNamespace>
+		<IsPackable>false</IsPackable>
+		<IsTestable>true</IsTestable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+		<PackageReference Include="NSubstitute" Version="4.2.1" />
+		<PackageReference Include="NUnit" Version="3.12.0" />
+		<PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SnowMaker\SnowMaker.csproj" />
+	</ItemGroup>
+
 </Project>
