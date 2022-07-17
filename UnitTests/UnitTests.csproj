@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net6</TargetFrameworks>
     <TargetFrameworks Condition="!$([MSBuild]::IsOsUnixLike())">$(TargetFrameworks);net472</TargetFrameworks>
     <Description>The unit tests for our pre-built mocks</Description>
     <AssemblyName>SnowMaker.UnitTests</AssemblyName>
