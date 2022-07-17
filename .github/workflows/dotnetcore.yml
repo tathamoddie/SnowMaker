@@ -22,18 +22,18 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.1.805
+        dotnet-version: 6.0.302
   
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.201
+        dotnet-version: 3.1.420
 
     #workaround https://github.com/actions/setup-dotnet/issues/25
     - name: Setup side by side .NET SDKs on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        SET DOTNET_21_ROOT=%DOTNET_ROOT:3.1.201=2.1.805%
+        SET DOTNET_21_ROOT=%DOTNET_ROOT:3.1.420=6.0.302%
         xcopy /s /y /d %DOTNET_31_ROOT% %DOTNET_ROOT%
       shell: cmd
 
@@ -41,7 +41,7 @@ jobs:
     - name: Setup side by side .NET SDKs
       if: matrix.os != 'windows-latest'
       run: |
-        rsync -a ${DOTNET_ROOT/3.1.201/2.1.805}/* $DOTNET_ROOT/
+        rsync -a ${DOTNET_ROOT/3.1.420/6.0.302}/* $DOTNET_ROOT/
 
     - name: Install dependencies
       run: dotnet restore
