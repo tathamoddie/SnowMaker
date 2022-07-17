@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <AssemblyName>SnowMaker</AssemblyName>
     <RootNamespace>SnowMaker</RootNamespace>
@@ -7,7 +8,11 @@
     <PackageProjectUrl>https://github.com/tathamoddie/snowmaker</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.1.2" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.5.107" />
   </ItemGroup>
 </Project>

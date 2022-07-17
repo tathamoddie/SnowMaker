@@ -1,59 +1,63 @@
-﻿using System;
+﻿using Azure.Storage.Blobs;
 using NUnit.Framework;
 using SnowMaker;
-using System.Text;
+using System;
+using System.Diagnostics;
 using System.IO;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using System.Text;
 
 namespace IntegrationTests
 {
     [TestFixture]
     public class Azure : Scenarios<Azure.TestScope>
     {
-        readonly CloudStorageAccount storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-
         protected override TestScope BuildTestScope()
         {
-            return new TestScope(CloudStorageAccount.DevelopmentStorageAccount);
+            return new TestScope("UseDevelopmentStorage=true");
         }
 
         protected override IOptimisticDataStore BuildStore(TestScope scope)
         {
-            return new BlobOptimisticDataStore(storageAccount, scope.ContainerName);
+            return new BlobOptimisticDataStore("UseDevelopmentStorage=true", scope.ContainerName, scope.Options);
         }
 
         public class TestScope : ITestScope
         {
-            readonly CloudBlobClient blobClient;
+            readonly BlobContainerClient blobContainerClient;
 
-            public TestScope(CloudStorageAccount account)
+            public TestScope(string storageConnectionString)
             {
                 var ticks = DateTime.UtcNow.Ticks;
                 IdScopeName = string.Format("snowmakertest{0}", ticks);
                 ContainerName = string.Format("snowmakertest{0}", ticks);
 
-                blobClient = account.CreateCloudBlobClient();
+                blobContainerClient = new BlobContainerClient(storageConnectionString, ContainerName, Options);
             }
 
             public string IdScopeName { get; private set; }
             public string ContainerName { get; private set; }
+            internal readonly BlobClientOptions Options = default;// new BlobClientOptions(BlobClientOptions.ServiceVersion.V2020_12_06);
 
             public string ReadCurrentPersistedValue()
             {
-                var blobContainer = blobClient.GetContainerReference(ContainerName);
-                var blob = blobContainer.GetBlockBlobReference(IdScopeName);
+                var blob = blobContainerClient.GetBlobClient(IdScopeName);
                 using (var stream = new MemoryStream())
                 {
-                    blob.DownloadToStream(stream);
+                    blob.DownloadTo(stream);
                     return Encoding.UTF8.GetString(stream.ToArray());
                 }
             }
 
             public void Dispose()
             {
-                var blobContainer = blobClient.GetContainerReference(ContainerName);
-                blobContainer.Delete();
+                try
+                {
+                    blobContainerClient.Delete();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
         }
     }
