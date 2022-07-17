@@ -1,20 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<AssemblyName>SnowMaker</AssemblyName>
-		<RootNamespace>SnowMaker</RootNamespace>
-		<Description>A high performance, distributed unique id generator for Azure environments.</Description>
-		<TargetFrameworks>netstandard2.0;</TargetFrameworks>
-		<PackageProjectUrl>https://github.com/tathamoddie/snowmaker</PackageProjectUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	</PropertyGroup>
+  <PropertyGroup>
+    <AssemblyName>SnowMaker</AssemblyName>
+    <RootNamespace>SnowMaker</RootNamespace>
+    <Description>A high performance, distributed unique id generator for Azure environments.</Description>
+    <TargetFrameworks>netstandard2.0;</TargetFrameworks>
+    <PackageProjectUrl>https://github.com/tathamoddie/snowmaker</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Update="Nerdbank.GitVersioning" Version="3.5.107" />
-	</ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.5.107" />
+  </ItemGroup>
 </Project>
