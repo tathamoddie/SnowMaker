@@ -103,14 +103,8 @@ namespace SnowMaker
 
                 // Populate remaining headers with 
                 // the pre-existing properties
-                //CacheControl = properties.Value.CacheControl,
-                //ContentDisposition = properties.Value.ContentDisposition,
                 ContentEncoding = "UTF-8", // properties.Value.ContentEncoding,
-                //ContentHash = properties.Value.ContentHash
             };
-
-            // Set the blob's properties.
-            //blob.SetHttpHeaders(headers);
 
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
             {
