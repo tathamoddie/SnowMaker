@@ -17,13 +17,20 @@ namespace SnowMaker
         readonly IDictionary<string, BlobClient> blobReferences;
         readonly object blobReferencesLock = new object();
 
-        public BlobOptimisticDataStore(string storageConnectionString, string containerName, BlobClientOptions options = default)
-        {
-            blobContainer = new BlobContainerClient(storageConnectionString, containerName, options);
-            blobContainer.CreateIfNotExists();
 
-            blobReferences = new Dictionary<string, BlobClient>();
+        public BlobOptimisticDataStore(BlobContainerClient blobContainer)
+        {
+            this.blobContainer = blobContainer;
+            this.blobContainer.CreateIfNotExists();
+
+            this.blobReferences = new Dictionary<string, BlobClient>();
         }
+
+        public BlobOptimisticDataStore(string storageConnectionString, string containerName, BlobClientOptions options = default)
+            : this(new BlobContainerClient(storageConnectionString, containerName, options))
+        {
+        }
+
 
         public string GetData(string blockName)
         {
